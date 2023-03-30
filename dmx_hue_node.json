@@ -1,0 +1,7 @@
+{
+  "data_folder": "/home/julian/projects/club-hue/dmx-hue-node/data",
+  "control_listen_port": 19001,
+  "dmx_universe": 1,
+  "dmx_address_space_start": 0,
+  "dmx_address_space_range": 30
+}
