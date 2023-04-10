@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.h"
+#include <core/types.h>
 
 #include <cstdint>
 #include <iostream>
@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <string>
 
-namespace DmxHueNode {
+namespace DmxEnttecNode {
 
 class Config
 {

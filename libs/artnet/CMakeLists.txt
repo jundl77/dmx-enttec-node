@@ -1,16 +1,15 @@
-set(name dmx_hue_node_artnet_lib)
+set(name dmx_enttec_node_artnet_lib)
 
 file(GLOB libartnet_sources libartnet/*.c libartnet/*.h)
+file(GLOB sources *.cc *.h)
 
-set(sources
-        artnet_server.cc
-        artnet_server.h)
+add_compile_options(-Wunused-variable -Wunused-parameter)
 
 add_library(${name} ${sources} ${libartnet_sources})
 target_link_libraries(${name}
-        dmx_hue_node_core_lib
-        dmx_hue_node_config_lib
-        dmx_hue_idl
+        dmx_enttec_node_core_lib
+        dmx_enttec_node_config_lib
+        dmx_enttec_node_enttec_lib
         )
 
 find_package(Boost 1.53 REQUIRED system)
@@ -22,4 +21,4 @@ else()
 endif()
 
 target_compile_options(${name} PRIVATE ${cxx_compile_options})
-target_include_directories(${name} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(${name} PUBLIC ..)

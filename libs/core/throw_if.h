@@ -9,4 +9,4 @@
 		{ \
 			throw std::runtime_error(__VA_ARGS__); \
 		} \
-	} while(false);
+	} while(false)

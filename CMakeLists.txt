@@ -8,5 +8,7 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     set(cxx_compile_options -Wall -Wextra)
 endif()
 
+add_subdirectory(x_njson)
+
 add_subdirectory(app)
 add_subdirectory(libs)

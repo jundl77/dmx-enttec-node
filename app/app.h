@@ -1,38 +1,31 @@
 #pragma once
 
 #include <config/config.h>
-#include <server/lights_sync.h>
-#include <hue_client/lights_sync_stream.h>
-
-#include <huestream/config/Config.h>
-#include <huestream/HueStream.h>
+#include <core/event_loop.h>
+#include <server/server.h>
 
 #include <string>
 #include <memory>
 
-namespace DmxHueNode {
-
-using huestream::HueStreamPtr;
+namespace DmxEnttecNode {
 
 class App
 {
 public:
-	App(const Config&, kj::AsyncIoContext&);
+	App(const Config&, EventLoop& loop);
 	~App();
 
-	kj::Promise<void> Start();
+	void Start();
 
 private:
-	void InitializeHueStream();
-	void ConnectToBridge();
 	void CheckConnection() const;
 
 private:
 	const Config& mConfig;
-	kj::AsyncIoContext& mAsio;
+	EventLoop& mEventLoop;
+	Server mServer;
 
-	std::unique_ptr<LightsSync> mLightsSync;
-	std::shared_ptr<LightSyncHueStream> mHueStream;
+	ScopedHandler mCbHandle;
 };
 
 }

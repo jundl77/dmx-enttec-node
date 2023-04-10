@@ -1,8 +1,8 @@
 #pragma once
 
+#include "artnet_handler.h"
 #include <config/config.h>
-#include <server/control_handler_if.h>
-#include <kj/async-io.h>
+#include <core/event_loop.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 
@@ -11,12 +11,12 @@ extern "C"
 #include "libartnet/artnet.h"
 }
 
-namespace DmxHueNode {
+namespace DmxEnttecNode {
 
-class ArtnetServer : private kj::TaskSet::ErrorHandler
+class ArtnetServer
 {
 public:
-	explicit ArtnetServer(const Config&, kj::AsyncIoContext&, IControlHandler&);
+	explicit ArtnetServer(const Config&, EventLoop&, IArtnetHandler&);
 	~ArtnetServer();
 
 	void StartListening();
@@ -24,7 +24,6 @@ public:
 private:
 	void PollSocket();
 	std::optional<std::string> FindIpAddress();
-	void taskFailed(kj::Exception&& exception) override;
 
 	// libartnet handlers
 	static int FirmwareHandler(artnet_node n, int ubea, uint16_t *data, int length, void *d);
@@ -32,10 +31,8 @@ private:
 
 private:
 	const Config& mConfig;
-	kj::AsyncIoContext& mAsio;
-	kj::Timer& mTimer;
-	kj::TaskSet mTasks{*this};
-	IControlHandler& mHandler;
+	EventLoop& mEventLoop;
+	IArtnetHandler& mHandler;
 
 	artnet_node mNode {NULL};
 	int mNodeSd;

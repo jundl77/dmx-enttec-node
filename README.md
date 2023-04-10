@@ -1,4 +1,4 @@
-# dmx-hue-node
+# dmx-enttec-node
 
 ### Install
 

@@ -14,21 +14,19 @@ extern "C"
 #include "libartnet/packets.h"
 }
 
-namespace DmxHueNode {
+namespace DmxEnttecNode {
 
 static const LogModule LM_ARTNET {"ARTNET_SERVERR"};
-static const kj::Duration POLL_SOCKET_FREQUENCY {500 * kj::NANOSECONDS};
-static IControlHandler* controlHandlerPtr = nullptr; // so that we have access from the C library
+static IArtnetHandler* artnetHandlerPtr = nullptr; // so that we have access from the C library
 static uint16_t listenUniverse = 0;
 
 
-ArtnetServer::ArtnetServer(const Config& config, kj::AsyncIoContext& asio, IControlHandler& handler)
+ArtnetServer::ArtnetServer(const Config& config, EventLoop& eventLoop, IArtnetHandler& handler)
 	: mConfig(config)
-	, mAsio(asio)
-	, mTimer(mAsio.provider->getTimer())
+	, mEventLoop(eventLoop)
 	, mHandler(handler)
 {
-	controlHandlerPtr = &mHandler;
+	artnetHandlerPtr = &mHandler;
 	listenUniverse = mConfig.mDmxUniverse;
 }
 
@@ -54,12 +52,12 @@ void ArtnetServer::StartListening()
 	mNode = artnet_new(ip_addr, verbose);
 	if (mNode == NULL)
 	{
-		LOG(ERROR, LM_ARTNET, "unable to create artnet node, stopping.")
+		LOG(LL_ERROR, LM_ARTNET, "unable to create artnet node, stopping.");
 		exit(1);
 	}
 
-	artnet_set_short_name(mNode, "Hue Node");
-	artnet_set_long_name(mNode, "ArtNet Philips Hue Node");
+	artnet_set_short_name(mNode, "Enttec-USB Pro Node");
+	artnet_set_long_name(mNode, "ArtNet Enttec-USB Pro Node");
 	artnet_set_node_type(mNode, ARTNET_NODE);
 
 	artnet_set_firmware_handler(mNode, FirmwareHandler, NULL);
@@ -70,7 +68,8 @@ void ArtnetServer::StartListening()
 
 	if (artnet_start(mNode) != ARTNET_EOK)
 	{
-		LOG(ERROR, LM_ARTNET, "unable to start artnet node, stopping.")
+		char* artnetError = artnet_strerror();
+		LOG(LL_ERROR, LM_ARTNET, "unable to start artnet node, stopping, error=%s", artnetError);
 		exit(1);
 	}
 
@@ -79,13 +78,12 @@ void ArtnetServer::StartListening()
 	mTv.tv_usec = 0;
 	fcntl(mNodeSd, F_SETFL, O_NONBLOCK);
 
-	PollSocket();
+	LOG(LL_ERROR, LM_ARTNET, "started listening on %s:%d", localIpAddress->c_str(), port_id);
+	mEventLoop.AddPoller([this]() { PollSocket(); });
 }
 
 void ArtnetServer::PollSocket()
 {
-	mTasks.add(mTimer.afterDelay(POLL_SOCKET_FREQUENCY).then([this]() { PollSocket(); }));
-
 	FD_ZERO(&mReadFds);
 	FD_SET(mNodeSd, &mReadFds);
 
@@ -95,33 +93,33 @@ void ArtnetServer::PollSocket()
 		return;  // no data on socket
 	}
 
-	LOG(DEBUG, LM_ARTNET, "received data");
+	LOG(LL_DEBUG, LM_ARTNET, "received data");
 	int res = artnet_read(mNode, 0);
 	if (res != ARTNET_EOK)
 	{
-		LOG(WARN, LM_ARTNET, "unable to read received artnet message successfully");
+		LOG(LL_WARN, LM_ARTNET, "unable to read received artnet message successfully");
 	}
 };
 
 int ArtnetServer::FirmwareHandler(artnet_node n, int ubea, uint16_t *data, int length, void *d)
 {
-	LOG(DEBUG, LM_ARTNET, "firmware handler got " << length << "words");
+	LOG(LL_DEBUG, LM_ARTNET, "firmware handler got %d words", length);
 	return 0;
 }
 
 int ArtnetServer::DmxHandler(artnet_node n, void* packet, void* data)
 {
-	LOG(DEBUG, LM_ARTNET, "received dmx data");
+	LOG(LL_DEBUG, LM_ARTNET, "received dmx data");
 	artnet_packet artnetPacket = (artnet_packet) packet;
 	if (artnetPacket->data.admx.universe != listenUniverse)
 	{
-		LOG(DEBUG, LM_ARTNET, "received dmx data for wrong universe, expected: " << listenUniverse
-				<< ", got " << artnetPacket->data.admx.universe);
+		LOG(LL_DEBUG, LM_ARTNET, "received dmx data for wrong universe, expected: %d, got %d",
+			listenUniverse, artnetPacket->data.admx.universe);
 		return 0;
 	}
 
 	uint8_t* dmxChannels = artnetPacket->data.admx.data;
-	controlHandlerPtr->OnDmxMessage(dmxChannels);
+	artnetHandlerPtr->OnDmxMessage(dmxChannels);
 	return 0;
 }
 
@@ -137,7 +135,7 @@ std::optional<std::string> ArtnetServer::FindIpAddress()
 	// socket could not be created
 	if (sock < 0)
 	{
-		LOG(ERROR, LM_ARTNET, "unable to create socket to google dns server to find local ip of socket");
+		LOG(LL_ERROR, LM_ARTNET, "unable to create socket to google dns server to find local ip of socket");
 		return std::nullopt;
 	}
 
@@ -149,7 +147,7 @@ std::optional<std::string> ArtnetServer::FindIpAddress()
 	int err = connect(sock, (const struct sockaddr*)&serv, sizeof(serv));
 	if (err < 0)
 	{
-		LOG(ERROR, LM_ARTNET, "unable to connect socket to google dns server to find local ip of socket");
+		LOG(LL_ERROR, LM_ARTNET, "unable to connect socket to google dns server to find local ip of socket");
 		return std::nullopt;
 	}
 
@@ -163,20 +161,14 @@ std::optional<std::string> ArtnetServer::FindIpAddress()
 
 	if(p != NULL)
 	{
-		LOG(INFO, LM_ARTNET, "found local ip: " << buffer);
+		LOG(LL_INFO, LM_ARTNET, "found local ip: %s", buffer);
 		return buffer;
 	}
 	else
 	{
-		LOG(ERROR, LM_ARTNET, "unable to find local ip using google dns lookup");
+		LOG(LL_ERROR, LM_ARTNET, "unable to find local ip using google dns lookup");
 		return std::nullopt;
 	}
-}
-
-void ArtnetServer::taskFailed(kj::Exception&& exception)
-{
-	std::string reason = "Exception during task " + std::string(exception.getDescription().cStr());
-	LOG(ERROR, LM_ARTNET, reason);
 }
 
 }

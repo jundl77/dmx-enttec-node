@@ -1,30 +1,28 @@
 #pragma once
 
+#include "clock.h"
 #include "strong_typedef.h"
 #include <stdexcept>
 #include <iostream>
+#include <cstdio>
 #include <chrono>
 
-#define DEBUG 0
-#define INFO 1
-#define WARN 2
-#define ERROR 3
+namespace DmxEnttecNode {
+
+#define LL_DEBUG 0
+#define LL_INFO  1
+#define LL_WARN  2
+#define LL_ERROR 3
 
 using LogModule = StrongTypedef<std::string, struct LogModuleTag>;
-
-static uint8_t GLOBAL_LOG_LEVEL = INFO;
-
 using Timestamp = std::chrono::system_clock::time_point;
-using NanoPosixTime = int64_t;
 
-inline void SetGlobalLogLevel(int logLevel)
-{
-	GLOBAL_LOG_LEVEL = logLevel;
-}
+void SetGlobalLogLevel(int logLevel);
+uint8_t GetGlobalLogLevel();
 
 inline NanoPosixTime ToNanoPosixTime(const Timestamp& timestamp)
 {
-	return std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp.time_since_epoch()).count();
+	return std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp.time_since_epoch());
 }
 
 inline NanoPosixTime CurrentNanoPosixTime()
@@ -36,7 +34,7 @@ inline decltype(auto) GetLocalTime()
 {
 	const int64_t kT_ns_in_s = 1000000000;
 	const size_t max_size = 35;
-	auto time = CurrentNanoPosixTime();
+	auto time = CurrentNanoPosixTime().count();
 	std::string result(max_size, ' ');
 
 	time_t secs = (time_t)(time / kT_ns_in_s);
@@ -49,23 +47,39 @@ inline decltype(auto) GetLocalTime()
 	return result;
 }
 
-#define LOG(level, module, message) \
+#define LOG(level, module, ...) \
 	do \
 	{ \
-		if (level == DEBUG && GLOBAL_LOG_LEVEL == DEBUG) \
+		if (level == LL_DEBUG && GetGlobalLogLevel() == LL_DEBUG) \
 		{ \
-			std::cout << GetLocalTime() << " [Debug ] [" << module << "] " << message << std::endl; \
+			std::cout << GetLocalTime() << " [Debug ] [" << module << "] "; \
+			std::printf(__VA_ARGS__); \
+			std::cout << std::endl; \
 		} \
-		else if (level == INFO) \
+		else if (level == LL_INFO && GetGlobalLogLevel() <= LL_INFO) \
 		{ \
-			std::cout << GetLocalTime() << " [Info ] [" << module << "] " << message << std::endl; \
+			std::cout << GetLocalTime() << " [Info ] [" << module << "] "; \
+			std::printf(__VA_ARGS__); \
+			std::cout << std::endl; \
 		} \
-		else if (level == WARN) \
+		else if (level == LL_WARN && GetGlobalLogLevel() <= LL_WARN) \
 		{ \
-			std::cout << GetLocalTime() << " [Warn ] [" << module << "] " << message << std::endl; \
+			std::cout << GetLocalTime() << " [Warn ] [" << module << "] "; \
+			std::printf(__VA_ARGS__); \
+			std::cout << std::endl; \
 		} \
-		else if (level == ERROR) \
+		else if (level == LL_ERROR && GetGlobalLogLevel() <= LL_ERROR) \
 		{ \
-			std::cout << GetLocalTime() << " [Error ] [" << module << "] " << message << std::endl; \
+			std::cout << GetLocalTime() << " [Error ] [" << module << "] "; \
+			std::printf(__VA_ARGS__); \
+			std::cout << std::endl; \
 		} \
-	} while(false);
+	} while(false)
+
+#ifdef NDEBUG
+#define DEBUG_LOG(level, module, ...) {}
+#else
+#define DEBUG_LOG(level, module, ...) { LOG(level, module, __VA_ARGS__) }
+#endif
+
+}

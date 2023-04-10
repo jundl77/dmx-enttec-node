@@ -2,37 +2,40 @@
 
 #include <config/config.h>
 #include <core/logger.h>
-#include <core/tsc_clock.h>
+#include <core/event_loop.h>
+#include <core/clock.h>
 #include <csignal>
 #include <cstdlib>
 #include <iostream>
 #include <string>
 
+using namespace DmxEnttecNode;
+
 static const LogModule LM_MAIN {"MAIN"};
 
-std::optional<DmxHueNode::Config> LoadConfig(int argc, char *argv[])
+std::optional<Config> LoadConfig(int argc, char *argv[])
 {
-	std::string filePath = "dmx_hue_node.json";
+	std::string filePath = "dmx_enttec_node.json";
 	if (argc == 2)
 	{
 		filePath = argv[1];
 	}
 	else if (argc > 2)
 	{
-		LOG(ERROR, LM_MAIN, "unable to parse arguments, usage: " << argv[0] << " [config_file]")
-		//return std::nullopt;
+		LOG(LL_ERROR, LM_MAIN, "unable to parse arguments, usage: %s [config_file]",  argv[0]);
+		return std::nullopt;
 	}
 
-	return DmxHueNode::Config::FromFile(filePath);
+	return Config::FromFile(filePath);
 }
 
 int main(int argc, char *argv[])
 {
-	LOG(INFO, LM_MAIN, "==================================================")
-	LOG(INFO, LM_MAIN, "Starting dmx-hue-node server")
-	LOG(INFO, LM_MAIN, "==================================================")
-	LOG(INFO, LM_MAIN, "")
-	LOG(INFO, LM_MAIN, "")
+	LOG(LL_INFO, LM_MAIN, "==================================================");
+	LOG(LL_INFO, LM_MAIN, "Starting dmx-enttec-node server");
+	LOG(LL_INFO, LM_MAIN, "==================================================");
+	LOG(LL_INFO, LM_MAIN, "");
+	LOG(LL_INFO, LM_MAIN, "");
 
 	std::locale::global(std::locale("C"));
 	std::cout.imbue(std::locale());
@@ -42,26 +45,23 @@ int main(int argc, char *argv[])
 
 	std::signal(SIGINT, [](int signal) { std::exit(1); });
 
-	DmxHueNode::TSCClock::Initialise();
-	SetGlobalLogLevel(INFO);
+	Clock::Initialise();
+	SetGlobalLogLevel(LL_INFO);
 
-	std::optional<DmxHueNode::Config> config = LoadConfig(argc, argv);
+	std::optional<Config> config = LoadConfig(argc, argv);
 	if (!config)
 	{
-		LOG(ERROR, LM_MAIN, "error loading config file, stopping")
+		LOG(LL_ERROR, LM_MAIN, "error loading config file, stopping");
 		return 1;
 	}
 
-	config->mAppName = "dmx_hue_node";
+	config->mAppName = "dmx_enttec_node";
 	config->mDeviceName = "PC";
 
-	kj::AsyncIoContext asyncio = kj::setupAsyncIo();
-	auto& waitScope = asyncio.waitScope;
+	EventLoop loop;
+	App app = App(*config, loop);
+	app.Start();
 
-	DmxHueNode::App app = DmxHueNode::App(*config, asyncio);
-	auto serverPromise = app.Start();
-
-	serverPromise.wait(waitScope);
-
+	loop.Run(RunHot::Yes);
 	return 0;
 }

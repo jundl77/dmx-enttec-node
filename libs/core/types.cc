@@ -1,6 +1,7 @@
 #include "types.h"
+#include <stdexcept>
 
-namespace DmxHueNode
+namespace DmxEnttecNode
 {
 
 std::string ToString(RgbChannel channel)

@@ -1,15 +1,17 @@
-set(name dmx_enttec_node_config_lib)
+set(name dmx_enttec_node_enttec_lib)
 
 file(GLOB sources *.cc *.h)
 
 add_library(${name} ${sources})
 target_link_libraries(${name}
         dmx_enttec_node_core_lib
-        nlohmann_json::nlohmann_json
+        dmx_enttec_node_config_lib
+        dmx_enttec_node_artnet_lib
         )
 
 find_package(Boost 1.53 REQUIRED system)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     target_link_libraries(${name} ${Boost_LIBRARIES} stdc++fs)
 else()
@@ -17,4 +19,4 @@ else()
 endif()
 
 target_compile_options(${name} PRIVATE ${cxx_compile_options})
-target_include_directories(${name} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(${name} PUBLIC ..)

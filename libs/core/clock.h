@@ -1,31 +1,17 @@
 #pragma once
 
 #include <chrono>
+#include <stdint.h>
 #include <thread>
-#include <type_traits>
+#include <stdexcept>
 
-namespace DmxHueNode {
+namespace DmxEnttecNode {
 
-class TSCClock
-{
-public:
-	static void Initialise();
+using namespace std::chrono_literals;
 
-	static uint64_t Now();
-	static std::chrono::nanoseconds FromCycles(uint64_t);
+using NanoPosixTime = std::chrono::nanoseconds;
 
-	template <class DurationT>
-	static uint64_t ToCycles(DurationT);
-
-private:
-	static double& GetFrequencyGHz()
-	{
-		static double TSCFreqGHz = .0;
-		return TSCFreqGHz;
-	}
-};
-
-namespace detail
+namespace tsc_impl
 {
 
 inline uint64_t rdtscp()
@@ -50,50 +36,51 @@ inline uint64_t rdtscp(int& chip, int& core)
 	return (rdx << 32) + rax;
 }
 
+static double& TSC_GetFrequencyGHz()
+{
+	static double TSCFreqGHz = .0;
+	return TSCFreqGHz;
 }
 
-inline uint64_t TSCClock::Now()
+inline uint64_t TSC_NowInCycles()
 {
-	return detail::rdtscp();
+	return rdtscp();
 }
 
-inline std::chrono::nanoseconds TSCClock::FromCycles(uint64_t cycles)
+inline std::chrono::nanoseconds TSC_FromCycles(uint64_t cycles)
 {
-	const double nanoseconds{static_cast<double>(cycles) / GetFrequencyGHz()};
+	const double nanoseconds{static_cast<double>(cycles) / TSC_GetFrequencyGHz()};
 	return std::chrono::nanoseconds(static_cast<uint64_t>(nanoseconds));
 }
 
-template <class DurationT>
-inline uint64_t TSCClock::ToCycles(DurationT duration)
+inline NanoPosixTime TSC_Now()
 {
-	const double nanoseconds{static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count())};
-	return static_cast<uint64_t>(nanoseconds * GetFrequencyGHz());
+	return TSC_FromCycles(TSC_NowInCycles());
 }
 
-
-inline void TSCClock::Initialise()
+inline void TSC_Initialise()
 {
-	double& tscFreq = GetFrequencyGHz();
+	double& tscFreq = TSC_GetFrequencyGHz();
 	if (tscFreq != .0)
 	{
 		return;
 	}
 
 	using Clock = std::conditional_t<std::chrono::high_resolution_clock::is_steady,
-									 std::chrono::high_resolution_clock,
-									 std::chrono::steady_clock>;
+			std::chrono::high_resolution_clock,
+			std::chrono::steady_clock>;
 
 	int chip, core, chip2, core2;
 
 	auto start = Clock::now();
 
-	detail::cpuid();
-	uint64_t rdtsc_start = detail::rdtscp(chip, core);
+	cpuid();
+	uint64_t rdtsc_start = rdtscp(chip, core);
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-	uint64_t rdtsc_end = detail::rdtscp(chip2, core2);
-	detail::cpuid();
+	uint64_t rdtsc_end = rdtscp(chip2, core2);
+	cpuid();
 
 	auto end = Clock::now();
 
@@ -104,6 +91,33 @@ inline void TSCClock::Initialise()
 	uint64_t cycles = rdtsc_end - rdtsc_start;
 
 	tscFreq = static_cast<double>(cycles) / static_cast<double>(duration_s.count());
+}
+
+}
+
+class Clock {
+public:
+	static void Initialise();
+
+	static NanoPosixTime Now();
+};
+
+inline NanoPosixTime Clock::Now()
+{
+#ifndef NDEBUG
+	return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch().count() * 1ns);
+#else
+	return tsc_impl::TSC_Now();
+#endif
+}
+
+inline void Clock::Initialise()
+{
+#ifndef NDEBUG
+	// skip
+#else
+	tsc_impl::TSC_Initialise();
+#endif
 }
 
 }
