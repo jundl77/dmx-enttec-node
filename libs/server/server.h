@@ -22,7 +22,7 @@ public:
 
 private:
 	// IArtnetHandler
-	void OnDmxMessage(const DmxFrame&) override;
+	void OnDmxMessage(const DmxFrame&, int universe) override;
 
 private:
 	const Config& mConfig;

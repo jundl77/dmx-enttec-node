@@ -52,7 +52,7 @@ ScopedHandler EventLoop::AddTimer(std::chrono::nanoseconds interval, Callback ca
 	newTimer.Start(std::move(callback));
 
 	const Timer* ptrTimer = mTimers.back().get();
-	return ScopedHandler([=]()
+	return ScopedHandler([this, ptrTimer]()
 	{
 		mTimers.erase(std::find_if(mTimers.begin(), mTimers.end(), [&](auto&& uptr) { return uptr.get() == ptrTimer; }));
 	});

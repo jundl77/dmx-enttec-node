@@ -79,7 +79,7 @@ inline decltype(auto) GetLocalTime()
 #ifdef NDEBUG
 #define DEBUG_LOG(level, module, ...) {}
 #else
-#define DEBUG_LOG(level, module, ...) { LOG(level, module, __VA_ARGS__) }
+#define DEBUG_LOG(level, module, ...) LOG(level, module, __VA_ARGS__)
 #endif
 
 }

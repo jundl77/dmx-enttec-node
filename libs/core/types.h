@@ -5,8 +5,11 @@
 #include <functional>
 #include <string>
 #include <cstdint>
+#include <span>
 
 namespace DmxEnttecNode {
+
+constexpr uint32_t DmxFrameSize = 512;
 
 enum RgbChannel
 {
@@ -20,7 +23,7 @@ RgbChannel FromString(const std::string&);
 
 using ClientId = StrongTypedef<uint64_t, struct ClientIdTag>;
 using DmxChannel = StrongTypedef<uint16_t, struct DmxChannelTag>;
-using DmxFrame = uint8_t*;
+using DmxFrame = std::span<uint8_t, DmxFrameSize>;
 
 struct Color
 {

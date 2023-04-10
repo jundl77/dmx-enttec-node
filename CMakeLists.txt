@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5.1)
 
 project(dmx_enttec_node LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     set(cxx_compile_options -Wall -Wextra)

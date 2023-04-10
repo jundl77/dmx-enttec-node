@@ -1,6 +1,7 @@
 #include "artnet_server.h"
 
 #include <core/logger.h>
+#include <core/throw_if.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <fcntl.h>
@@ -12,13 +13,26 @@
 extern "C"
 {
 #include "libartnet/packets.h"
+#include "libartnet/private.h"
 }
 
 namespace DmxEnttecNode {
 
 static const LogModule LM_ARTNET {"ARTNET_SERVERR"};
-static IArtnetHandler* artnetHandlerPtr = nullptr; // so that we have access from the C library
-static uint16_t listenUniverse = 0;
+static IArtnetHandler* sArtnetHandlerPtr = nullptr; // so that we have access from the C library
+
+namespace {
+
+void ConfigureArtnetPollReplyTemplate(artnet_node& artnetNode)
+{
+	node n = reinterpret_cast<node>(artnetNode);
+
+	// this tells senders to send to the bcast addr, which ensures that we dont need to bind to the exact IP which
+	// they send to
+	memcpy(&n->ar_temp.ip, &n->state.bcast_addr, sizeof(n->state.bcast_addr));
+}
+
+}
 
 
 ArtnetServer::ArtnetServer(const Config& config, EventLoop& eventLoop, IArtnetHandler& handler)
@@ -26,8 +40,7 @@ ArtnetServer::ArtnetServer(const Config& config, EventLoop& eventLoop, IArtnetHa
 	, mEventLoop(eventLoop)
 	, mHandler(handler)
 {
-	artnetHandlerPtr = &mHandler;
-	listenUniverse = mConfig.mDmxUniverse;
+	sArtnetHandlerPtr = &mHandler;
 }
 
 ArtnetServer::~ArtnetServer()
@@ -48,7 +61,7 @@ void ArtnetServer::StartListening()
 		ip_addr = localIpAddress->c_str();
 	}
 
-	int verbose = 1;
+	int verbose = 0; // 0 is not verbose, 1 is verbose
 	mNode = artnet_new(ip_addr, verbose);
 	if (mNode == NULL)
 	{
@@ -59,6 +72,7 @@ void ArtnetServer::StartListening()
 	artnet_set_short_name(mNode, "Enttec-USB Pro Node");
 	artnet_set_long_name(mNode, "ArtNet Enttec-USB Pro Node");
 	artnet_set_node_type(mNode, ARTNET_NODE);
+	artnet_dump_config(mNode);
 
 	artnet_set_firmware_handler(mNode, FirmwareHandler, NULL);
 	artnet_set_handler(mNode, ARTNET_DMX_HANDLER, DmxHandler, NULL);
@@ -78,8 +92,11 @@ void ArtnetServer::StartListening()
 	mTv.tv_usec = 0;
 	fcntl(mNodeSd, F_SETFL, O_NONBLOCK);
 
-	LOG(LL_INFO, LM_ARTNET, "started listening on %s:%d", localIpAddress->c_str(), port_id);
-	mPollHandle = mEventLoop.AddPoller([this]() { PollSocket(); });
+	ConfigureArtnetPollReplyTemplate(mNode);
+
+	LOG(LL_INFO, LM_ARTNET, "started listening on %s:%d", localIpAddress->c_str(), ARTNET_PORT);
+	mListenSocketPollHandle = mEventLoop.AddPoller([this]() { PollSocket(); });
+	mArtPollReplyHandle = mEventLoop.AddTimer(1s, [this]() { SendArtPollReply(); });
 }
 
 void ArtnetServer::PollSocket()
@@ -101,6 +118,12 @@ void ArtnetServer::PollSocket()
 	}
 };
 
+void ArtnetServer::SendArtPollReply()
+{
+	DEBUG_LOG(LL_DEBUG, LM_ARTNET, "sending art-poll reply (to keep connections alive)");
+	artnet_send_poll_reply(mNode);
+}
+
 int ArtnetServer::FirmwareHandler(artnet_node n, int ubea, uint16_t *data, int length, void *d)
 {
 	LOG(LL_DEBUG, LM_ARTNET, "firmware handler got %d words", length);
@@ -109,17 +132,12 @@ int ArtnetServer::FirmwareHandler(artnet_node n, int ubea, uint16_t *data, int l
 
 int ArtnetServer::DmxHandler(artnet_node n, void* packet, void* data)
 {
-	LOG(LL_DEBUG, LM_ARTNET, "received dmx data");
+	DEBUG_LOG(LL_DEBUG, LM_ARTNET, "received dmx data");
 	artnet_packet artnetPacket = static_cast<artnet_packet>(packet);
-	if (artnetPacket->data.admx.universe != listenUniverse)
-	{
-		LOG(LL_DEBUG, LM_ARTNET, "received dmx data for wrong universe, expected: %d, got %d",
-			listenUniverse, artnetPacket->data.admx.universe);
-		return 0;
-	}
 
-	uint8_t* dmxChannels = artnetPacket->data.admx.data;
-	artnetHandlerPtr->OnDmxMessage(dmxChannels);
+	THROW_IF(sizeof(artnetPacket->data.admx.data) != DmxFrameSize, "unexpected dmx frame size");
+	const DmxFrame dmxChannels = DmxFrame(artnetPacket->data.admx.data);
+	sArtnetHandlerPtr->OnDmxMessage(dmxChannels, artnetPacket->data.admx.universe);
 	return 0;
 }
 

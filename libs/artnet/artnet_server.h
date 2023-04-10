@@ -25,6 +25,8 @@ private:
 	void PollSocket();
 	std::optional<std::string> FindIpAddress();
 
+	void SendArtPollReply();
+
 	// libartnet handlers
 	static int FirmwareHandler(artnet_node n, int ubea, uint16_t *data, int length, void *d);
 	static int DmxHandler(artnet_node n, void* packet, void* data);
@@ -33,7 +35,8 @@ private:
 	const Config& mConfig;
 	EventLoop& mEventLoop;
 	IArtnetHandler& mHandler;
-	ScopedHandler mPollHandle;
+	ScopedHandler mListenSocketPollHandle;
+	ScopedHandler mArtPollReplyHandle;
 
 	artnet_node mNode {NULL};
 	int mNodeSd;

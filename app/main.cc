@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 	std::signal(SIGINT, [](int signal) { std::exit(1); });
 
 	Clock::Initialise();
-	SetGlobalLogLevel(LL_DEBUG);
+	SetGlobalLogLevel(LL_INFO);
 
 	std::optional<Config> config = LoadConfig(argc, argv);
 	if (!config)
@@ -62,6 +62,6 @@ int main(int argc, char *argv[])
 	App app = App(*config, loop);
 	app.Start();
 
-	loop.Run(RunHot::Yes);
+	loop.Run(RunHot::No);
 	return 0;
 }

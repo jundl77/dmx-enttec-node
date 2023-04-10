@@ -9,7 +9,7 @@ class IArtnetHandler
 public:
 	virtual ~IArtnetHandler() = default;
 
-	virtual void OnDmxMessage(const DmxFrame&) = 0;
+	virtual void OnDmxMessage(const DmxFrame&, int universe) = 0;
 };
 
 }
