@@ -33,6 +33,7 @@ private:
 	const Config& mConfig;
 	EventLoop& mEventLoop;
 	IArtnetHandler& mHandler;
+	ScopedHandler mPollHandle;
 
 	artnet_node mNode {NULL};
 	int mNodeSd;

@@ -78,8 +78,8 @@ void ArtnetServer::StartListening()
 	mTv.tv_usec = 0;
 	fcntl(mNodeSd, F_SETFL, O_NONBLOCK);
 
-	LOG(LL_ERROR, LM_ARTNET, "started listening on %s:%d", localIpAddress->c_str(), port_id);
-	mEventLoop.AddPoller([this]() { PollSocket(); });
+	LOG(LL_INFO, LM_ARTNET, "started listening on %s:%d", localIpAddress->c_str(), port_id);
+	mPollHandle = mEventLoop.AddPoller([this]() { PollSocket(); });
 }
 
 void ArtnetServer::PollSocket()
@@ -110,7 +110,7 @@ int ArtnetServer::FirmwareHandler(artnet_node n, int ubea, uint16_t *data, int l
 int ArtnetServer::DmxHandler(artnet_node n, void* packet, void* data)
 {
 	LOG(LL_DEBUG, LM_ARTNET, "received dmx data");
-	artnet_packet artnetPacket = (artnet_packet) packet;
+	artnet_packet artnetPacket = static_cast<artnet_packet>(packet);
 	if (artnetPacket->data.admx.universe != listenUniverse)
 	{
 		LOG(LL_DEBUG, LM_ARTNET, "received dmx data for wrong universe, expected: %d, got %d",

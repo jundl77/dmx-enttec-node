@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 	std::signal(SIGINT, [](int signal) { std::exit(1); });
 
 	Clock::Initialise();
-	SetGlobalLogLevel(LL_INFO);
+	SetGlobalLogLevel(LL_DEBUG);
 
 	std::optional<Config> config = LoadConfig(argc, argv);
 	if (!config)

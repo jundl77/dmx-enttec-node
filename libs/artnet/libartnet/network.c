@@ -560,7 +560,7 @@ int artnet_net_start(node n) {
 // allow reusing 6454 port _ 
     if (setsockopt(sock,
                    SOL_SOCKET,
-                   SO_BROADCAST,
+				   SO_REUSEADDR,
                    (char*) &true_flag, // char* for win32
                    sizeof(int)) == -1) {
       artnet_error("Failed to bind to socket %s", artnet_net_last_error());

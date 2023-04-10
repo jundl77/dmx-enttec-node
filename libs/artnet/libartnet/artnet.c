@@ -385,7 +385,7 @@ int artnet_join(artnet_node vn1, artnet_node vn2) {
  * @param fh A pointer to a function, set to NULL to turn off
  *           The function should return 0,
  * @param data Data to be passed to the handler when its called
- * @return 0 on sucess, non 0 on failure
+ * @return 0 on success, non 0 on failure
  */
 int artnet_set_handler(artnet_node vn,
                        artnet_handler_name_t handler,

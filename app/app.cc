@@ -23,14 +23,6 @@ void App::Start()
 {
 	LOG(LL_INFO, LM_APP, "starting %s", mConfig.mAppName.c_str());
 	mServer.Start();
-
-	mCbHandle = mEventLoop.AddTimer(1s, []()
-	{
-		LOG(LL_INFO, LM_APP, "1 sec cb ellapsed");
-	});
-
-//	mLightsSync = std::make_unique<LightsSync>(mConfig, mAsio, mHueStream);
-//	return mLightsSync->Start();
 }
 
 }

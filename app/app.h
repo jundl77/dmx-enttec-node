@@ -24,8 +24,6 @@ private:
 	const Config& mConfig;
 	EventLoop& mEventLoop;
 	Server mServer;
-
-	ScopedHandler mCbHandle;
 };
 
 }
