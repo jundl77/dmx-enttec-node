@@ -10,6 +10,7 @@ namespace DmxEnttecNode {
 
 class IEnttecUSBClient
 {
+public:
 	virtual ~IEnttecUSBClient() = default;
 };
 

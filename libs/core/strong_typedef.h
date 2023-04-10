@@ -41,26 +41,3 @@ Stream& operator<<(Stream& stream, const StrongTypedef<T, Tag>& x)
 	stream << x.mValue;
 	return stream;
 }
-
-namespace boost {
-
-template <typename T, typename Tag>
-size_t hash_value(const StrongTypedef<T, Tag>& x)
-{
-	return std::hash<T>{}(x.mValue);
-}
-
-}
-
-namespace std {
-
-template <typename T, typename Tag>
-struct hash<StrongTypedef<T, Tag>>
-{
-	std::size_t operator()(const StrongTypedef<T, Tag>& x) const
-	{
-		return boost::hash_value<T, Tag>(x);
-	}
-};
-
-}

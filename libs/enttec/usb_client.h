@@ -12,8 +12,11 @@ namespace DmxEnttecNode {
 
 class EnttecUSBClient : public IEnttecUSBClient
 {
+public:
 	EnttecUSBClient() = default;
-	~EnttecUSBClient() = default;
+	~EnttecUSBClient();
+
+	void Start();
 };
 
 }

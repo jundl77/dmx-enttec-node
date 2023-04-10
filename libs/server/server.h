@@ -3,6 +3,7 @@
 #include <core/types.h>
 #include <core/event_loop.h>
 #include <artnet/artnet_server.h>
+#include <enttec/usb_client.h>
 
 #include <cstdint>
 #include <iostream>
@@ -28,6 +29,7 @@ private:
 	const Config& mConfig;
 	EventLoop& mEventLoop;
 	ArtnetServer mArtnetServer;
+	EnttecUSBClient mUsbClient;
 
 	ScopedHandler mCbHandle;
 };

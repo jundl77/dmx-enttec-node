@@ -55,11 +55,11 @@ ArtnetServer::~ArtnetServer()
 void ArtnetServer::StartListening()
 {
 	std::optional<std::string> localIpAddress = FindIpAddress();
-	const char* ip_addr = NULL;
-	if (localIpAddress)
+	if (!localIpAddress)
 	{
-		ip_addr = localIpAddress->c_str();
+		localIpAddress = "127.0.0.1";
 	}
+	const char* ip_addr = localIpAddress->c_str();
 
 	int verbose = 0; // 0 is not verbose, 1 is verbose
 	mNode = artnet_new(ip_addr, verbose);

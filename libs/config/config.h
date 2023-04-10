@@ -7,6 +7,7 @@
 #include <chrono>
 #include <unordered_map>
 #include <string>
+#include <optional>
 
 namespace DmxEnttecNode {
 
