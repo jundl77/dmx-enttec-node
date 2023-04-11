@@ -23,6 +23,13 @@ int ParseLogLevel(const std::string& logLevel)
 	throw std::runtime_error("unknown log-level '" + logLevel + "', options are: debug|info|warn|error");
 }
 
+RunHot ParseRunHot(bool runHot)
+{
+	if (runHot)
+		return RunHot::Yes;
+	return RunHot::No;
+}
+
 }
 
 std::optional<Config> Config::FromFile(const std::string& filePath)
@@ -44,6 +51,12 @@ std::optional<Config> Config::FromFile(const std::string& filePath)
 	std::string logLevel = json["log_level"];
 	config.mLogLevel = ParseLogLevel(logLevel);
 	LOG(LL_INFO, LM_CONFIG, "log_level: %s", LogLevelToString(config.mLogLevel).c_str());
+
+	config.mRunHot = ParseRunHot(json["run_hot"]);
+	LOG(LL_INFO, LM_CONFIG, "run_hot: %d", config.mRunHot);
+
+	config.mCoreAffinity = json["core_affinity"];
+	LOG(LL_INFO, LM_CONFIG, "core_affinity: %d", config.mCoreAffinity);
 
 	config.mControlListenPort = json["control_listen_port"];
 	LOG(LL_INFO, LM_CONFIG, "control_listen_port: %d", config.mControlListenPort);

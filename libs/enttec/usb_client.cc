@@ -1,134 +1,93 @@
 #include "usb_client.h"
 #include "libenttec/usb_pro.h"
-
-#include <cstdint>
-#include <iostream>
-#include <chrono>
-#include <unordered_map>
+#include <core/logger.h>
+#include <core/throw_if.h>
 #include <string>
 
 namespace DmxEnttecNode {
 
+static const LogModule LM_USB_CLIENT {"USB_CLIENT"};
+static const WORD sVID = 0x0403;
+static const WORD sPID = 0x6001;
+static constexpr uint8_t DMX_PACKET_START_CODE = 0;
+
 EnttecUSBClient::~EnttecUSBClient()
 {
-
+	FTDI_ClosePort();
 }
 
 void EnttecUSBClient::Start()
 {
-	FT_STATUS ftStatus;
-	WORD wVID = 0x0403;
-	WORD wPID = 0x6001;
-	uint8_t Num_Devices =0;
-	uint16_t device_connected =0;
-	int i=0;
-	int device_num=0;
-	BOOL res = 0;
+	LOG(LL_INFO, LM_USB_CLIENT, "starting enttec USB client, looking for a PRO connected to PC ...");
+	ReloadDriver();
 
-	printf("\nEnttec Pro - C - Windows - FTDI Test\n");
-	printf("\nLooking for a PRO's connected to PC ... ");
+	mNumDevices = FTDI_ListDevices();
+	THROW_IF(mNumDevices != 1, "expected 1 enttec USB PRO device, found " + std::to_string(mNumDevices));
+	LOG(LL_INFO, LM_USB_CLIENT, "found number of devices: %d", mNumDevices);
 
-	// Good idea to reload device drivers: takes a few secs
-	/*
-	printf ("\nReloading devices for use with drivers ");
-	ftStatus = FT_Reload(wVID,wPID);
+	mDeviceConnected = FTDI_OpenDevice(0); // device 0 is first device
+	THROW_IF(!mDeviceConnected, "failed to open device for reading/writing");
+	LOG(LL_INFO, LM_USB_CLIENT, "opened device successfully for reading/writing");
+}
+
+bool EnttecUSBClient::Send(const DmxFrame& dmxFrame)
+{
+	THROW_IF(!mDeviceConnected, "tried to send DMX to enttec USB PRO, but device is not connected");
+
+	// we need to shift the whole frame up by one to set DMX_PACKET_START_CODE
+	unsigned char serializedFrame[DmxFrameSize + 1];
+	std::memset(serializedFrame, 0, DmxFrameSize + 1);
+	std::memcpy(serializedFrame + 1, dmxFrame.data(), dmxFrame.size());
+	serializedFrame[0] = DMX_PACKET_START_CODE;
+
+	int res = FTDI_SendData(SET_DMX_TX_MODE, serializedFrame, sizeof(serializedFrame));
+	if (res < 0)
+	{
+		LOG(LL_WARN, LM_USB_CLIENT, "failed to send DMX to enttec USB PRO device");
+		FTDI_ClosePort();
+		return false;
+	}
+	DEBUG_LOG(LL_DEBUG, LM_USB_CLIENT, "sent DMX frame to USB device successfully, frame: %s", ToStream(dmxFrame).c_str());
+}
+
+bool EnttecUSBClient::Receive(DmxFrame& outFrame)
+{
+	THROW_IF(!mDeviceConnected, "tried to send DMX to enttec USB PRO, but device is not connected");
+
+	unsigned char send_on_change_flag = 1;
+	int res = FTDI_SendData(RECEIVE_DMX_ON_CHANGE,&send_on_change_flag,0);
+	if (res < 0)
+	{
+		LOG(LL_INFO, LM_USB_CLIENT, "failed to set RECEIVE_DMX_ON_CHANGE on device");
+		FTDI_ClosePort();
+		return false;
+	}
+
+	std::memset(outFrame.data(), 0, 513);
+	res = FTDI_RxDMX(SET_DMX_RX_MODE, outFrame.data(), 513);
+	if (res < 0)
+	{
+		LOG(LL_INFO, LM_USB_CLIENT, "failed to read DMX message from enttec USB PRO device");
+		FTDI_ClosePort();
+		return false;
+	}
+
+	return true;
+}
+
+void EnttecUSBClient::ReloadDriver()
+{
+	LOG(LL_INFO, LM_USB_CLIENT, "reloading devices for use with drivers (wait 3.5sec)");
+	mFtStatus = FT_Reload(sVID, sPID);
 	Sleep(3500);
-	if(ftStatus != FT_OK)
+	if (mFtStatus != FT_OK)
 	{
-		printf("\nReloading Driver FAILED");
-	}
-	else
-		printf("\nReloading Driver D2XX PASSED");
-	*/
-	// Just to make sure the Device is correct
-	printf("\n Press Enter to Intialize Device :");
-	Num_Devices = FTDI_ListDevices();
-	// Number of Found Devices
-	if (Num_Devices == 0)
-	{
-		printf("\n Looking for Devices  - 0 Found");
+		LOG(LL_INFO, LM_USB_CLIENT, "reloading D2XX driver failed");
 	}
 	else
 	{
-		// If you want to open all; use for loop
-		// we'll open the first one only
-		for (i=0;i<Num_Devices;i++)
-		{
-			if (device_connected)
-				break;
-			device_num = i;
-			device_connected = FTDI_OpenDevice(device_num);
-		}
-
-/* Use this if you want to receive dmx in a loop
- */
-		if (device_connected)
-		{
-			unsigned char myDmxIn[513];
-
-			// Looping to receiving DMX data
-			printf("\n Press Enter to receive DMX data :");
-			printf("\nSet the widget to send DMX only when signal change... ");
-			unsigned char send_on_change_flag = 1;
-			res = FTDI_SendData(RECEIVE_DMX_ON_CHANGE,&send_on_change_flag,0);
-			if (res < 0)
-			{
-				printf("FAILED\n");
-				FTDI_ClosePort();
-				return;
-			}
-			for (int i = 0; i < 1000 ; i++)
-			{
-				memset(myDmxIn,0,513);
-				res = FTDI_RxDMX(SET_DMX_RX_MODE, myDmxIn, 513);
-				if (res < 0)
-				{
-					printf("FAILED\n");
-					FTDI_ClosePort();
-					break;
-					return;
-				}
-				printf("Iteration: %d\n", i);
-				printf("DMX Data from 0 to 10: ");
-				for (int j = 0; j <= 8; j++){
-					printf (" %d ",myDmxIn[j]);
-				}
-			}
-
-		}
-
-// Use this if you want to send dmx in a loop
-/*
-		if (device_connected)
-		{
-			unsigned char myDmx[530];
-			// Looping to Send DMX data
-			printf("\n Press Enter to Send DMX data :");
-			getch();
-			for (int i = 0; i < 10000 ; i++)
-			{
-				memset(myDmx,i,530);
-				myDmx[0] = 0;
-				res = FTDI_SendData(6, myDmx, 75);
-				if (res < 0)
-				{
-					printf("FAILED\n");
-					FTDI_ClosePort();
-					break;
-					return -1;
-				}
-				printf("Iteration: %d\n", i);
-				printf("DMX Data from 0 to 10: ");
-				for (int j = 0; j <= 8; j++)
-					printf (" %d ",myDmx[j]);
-
-			}
-		}
-*/
+		LOG(LL_INFO, LM_USB_CLIENT, "reloading D2XX driver passed");
 	}
-
-	// Finish all done
-	printf("\n Press Enter to Exit :");
 }
 
 }

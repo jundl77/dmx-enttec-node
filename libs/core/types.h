@@ -19,11 +19,14 @@ enum RgbChannel
 };
 
 std::string ToString(RgbChannel);
+
 RgbChannel FromString(const std::string&);
 
 using ClientId = StrongTypedef<uint64_t, struct ClientIdTag>;
 using DmxChannel = StrongTypedef<uint16_t, struct DmxChannelTag>;
 using DmxFrame = std::span<uint8_t, DmxFrameSize>;
+
+std::string ToString(const DmxFrame&);
 
 struct Color
 {

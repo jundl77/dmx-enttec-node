@@ -10,14 +10,7 @@
 #include <tchar.h>
 #include <time.h>
 #include "ftd2xx/ftd2xx.h"
-
-#ifdef _MSC_VER
-// TODO: do we need "ms_stdint.h" ?
-//	#include "ms_stdint.h"
-	#include <stdint.h>
-#else
-	#include <stdint.h>
-#endif
+#include <stdint.h>
 
 // Enttec Pro definitions
 #define GET_WIDGET_PARAMS 3

@@ -96,8 +96,14 @@ void ArtnetServer::StartListening()
 	mNodeSd = artnet_get_sd(mNode);
 	mTv.tv_sec = 0;
 	mTv.tv_usec = 0;
-	// TODO: do something for windows
-	//fcntl(mNodeSd, F_SETFL, O_NONBLOCK);
+
+#ifdef WIN32
+	bool is_blocking = false;
+	u_long flags = is_blocking ? 0 : 1;
+	ioctlsocket(mNodeSd, FIONBIO, &flags);
+#else
+	fcntl(mNodeSd, F_SETFL, O_NONBLOCK);
+#endif
 
 	ConfigureArtnetPollReplyTemplate(mNode);
 

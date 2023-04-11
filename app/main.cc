@@ -9,6 +9,10 @@
 #include <iostream>
 #include <string>
 
+#ifdef WIN32
+#include <Windows.h>
+#endif
+
 using namespace DmxEnttecNode;
 
 static const LogModule LM_MAIN {"MAIN"};
@@ -27,6 +31,22 @@ std::optional<Config> LoadConfig(int argc, char *argv[])
 	}
 
 	return Config::FromFile(filePath);
+}
+
+bool SetAffinity(int core)
+{
+#ifdef WIN32
+	HANDLE process = GetCurrentProcess();
+	DWORD_PTR processAffinityMask = 1 << core;
+
+	BOOL success = SetProcessAffinityMask(process, processAffinityMask);
+	if (success)
+	{
+		return true;
+	}
+	return false;
+#endif
+	return false;
 }
 
 int main(int argc, char *argv[])
@@ -57,6 +77,13 @@ int main(int argc, char *argv[])
 	SetGlobalLogLevel(config->mLogLevel);
 	LOG(LL_INFO, LM_MAIN, "setting log-level to: %s", LogLevelToString(config->mLogLevel).c_str());
 
+	if (config->mRunHot == RunHot::Yes)
+	{
+		LOG(LL_INFO, LM_MAIN, "running hot");
+		SetAffinity(config->mCoreAffinity);
+		LOG(LL_INFO, LM_MAIN, "set core affinity to core: %d", config->mCoreAffinity);
+	}
+
 	config->mAppName = "dmx_enttec_node";
 	config->mDeviceName = "PC";
 
@@ -64,6 +91,14 @@ int main(int argc, char *argv[])
 	App app = App(*config, loop);
 	app.Start();
 
-	loop.Run(RunHot::No);
+	try
+	{
+		loop.Run(config->mRunHot);
+	}
+	catch (const std::exception& e)
+	{
+		LOG(LL_ERROR, LM_MAIN, "program terminated with uncaught exception: %s", e.what());
+		return 1;
+	}
 	return 0;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core/types.h>
+#include <core/event_loop.h>
 
 #include <cstdint>
 #include <iostream>
@@ -17,6 +18,8 @@ public:
 	static std::optional<Config> FromFile(const std::string& filename);
 
 	int mLogLevel;
+	RunHot mRunHot { RunHot::No };
+	int mCoreAffinity; // core number on which to run, only takes effect if mRunHot is RunHot::Yes
 	std::string mAppName;
 	std::string mDeviceName;
 	std::string mDataFolder;

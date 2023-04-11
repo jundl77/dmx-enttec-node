@@ -184,7 +184,7 @@ void FTDI_PurgeBuffer()
 /* Function : FTDI_OpenDevice
  * Author	: ENTTEC
  * Purpose  : Opens the PRO; Tests various parameters; outputs info
- * Parameters: device num (returned by the List Device fuc), Fw Version MSB, Fw Version LSB 
+ * Parameters: device num (returned by the List Device fuc), Fw Version MSB, Fw Version LSB
  **/
 uint16_t FTDI_OpenDevice(int device_num)
 {
@@ -206,9 +206,7 @@ uint16_t FTDI_OpenDevice(int device_num)
 	int MABTime;
 	uint8_t DMX_Data[513];
 
-
-
-	// Try at least 3 times 
+	// Try at least 3 times
 	do  {
 		printf("\n------ D2XX ------- Opening [Device %d] ------ Try %d",device_num,tries);
 		ftStatus = FT_Open(device_num,&device_handle);
@@ -284,8 +282,8 @@ uint16_t FTDI_OpenDevice(int device_num)
 		printf("\n\t\t  SEND REFRESH RATE: %d packets/sec",PRO_Params.RefreshRate);
 
 		// Send DMX
-		//memset(DMX_Data,0x1E,sizeof(DMX_Data));
-		//res = FTDI_SendData(4,(unsigned char *)&DMX_Data,sizeof(DMX_Data));
+		memset(DMX_Data,0x1E,sizeof(DMX_Data));
+		res = FTDI_SendData(4,(unsigned char *)&DMX_Data,sizeof(DMX_Data));
 
 		return TRUE;
 	}

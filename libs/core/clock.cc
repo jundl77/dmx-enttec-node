@@ -7,7 +7,7 @@
 namespace DmxEnttecNode::tsc_impl {
 
 
-inline uint64_t rdtscp()
+uint64_t rdtscp()
 {
 #ifndef WIN32
 	uint64_t rax, rcx, rdx;
@@ -19,7 +19,7 @@ inline uint64_t rdtscp()
 #endif
 }
 
-inline void cpuid()
+void cpuid()
 {
 	// TODO: revise, this probably does not work
 
@@ -29,7 +29,7 @@ inline void cpuid()
 #endif
 }
 
-inline uint64_t rdtscp(int& chip, int& core)
+uint64_t rdtscp(int& chip, int& core)
 {
 #ifndef WIN32
 	uint64_t rax, rcx, rdx;

@@ -21,17 +21,19 @@ Server::~Server()
 void Server::Start()
 {
 	mArtnetServer.StartListening();
+	mUsbClient.Start();
 }
 
 void Server::OnDmxMessage(const DmxFrame& frame, int universe)
 {
-	DEBUG_LOG(LL_INFO, LM_SERVER, "received dmx frame on universe %d", universe);
+	DEBUG_LOG(LL_DEBUG, LM_SERVER, "received dmx frame on universe %d", universe);
 	if (universe != mConfig.mDmxUniverse)
 	{
-		DEBUG_LOG(LL_WARN, LM_SERVER, "received dmx data for wrong universe, expected: %d, got %d",
+		DEBUG_LOG(LL_DEBUG, LM_SERVER, "received dmx data for wrong universe, expected: %d, got %d",
 			mConfig.mDmxUniverse, universe);
 		return;
 	}
+	mUsbClient.Send(frame);
 }
 
 }

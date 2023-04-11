@@ -15,9 +15,9 @@ using NanoPosixTime = std::chrono::nanoseconds;
 namespace tsc_impl
 {
 
-inline uint64_t rdtscp();
-inline void cpuid();
-inline uint64_t rdtscp(int& chip, int& core);
+uint64_t rdtscp();
+void cpuid();
+uint64_t rdtscp(int& chip, int& core);
 
 static double& TSC_GetFrequencyGHz()
 {
@@ -87,7 +87,7 @@ public:
 
 inline NanoPosixTime Clock::Now()
 {
-#ifndef NDEBUG
+#if !defined(NDEBUG) || defined(WIN32)
 	return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch().count() * 1ns);
 #else
 	return tsc_impl::TSC_Now();
@@ -96,7 +96,7 @@ inline NanoPosixTime Clock::Now()
 
 inline void Clock::Initialise()
 {
-#ifndef NDEBUG
+#if !defined(NDEBUG) || defined(WIN32)
 	// skip
 #else
 	tsc_impl::TSC_Initialise();
