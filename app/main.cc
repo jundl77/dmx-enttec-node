@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 	std::signal(SIGINT, [](int signal) { std::exit(1); });
 
 	Clock::Initialise();
-	SetGlobalLogLevel(LL_INFO);
+	SetGlobalLogLevel(LL_DEBUG);
 
 	std::optional<Config> config = LoadConfig(argc, argv);
 	if (!config)
@@ -54,6 +54,8 @@ int main(int argc, char *argv[])
 		LOG(LL_ERROR, LM_MAIN, "error loading config file, stopping");
 		return 1;
 	}
+	SetGlobalLogLevel(config->mLogLevel);
+	LOG(LL_INFO, LM_MAIN, "setting log-level to: %s", LogLevelToString(config->mLogLevel).c_str());
 
 	config->mAppName = "dmx_enttec_node";
 	config->mDeviceName = "PC";

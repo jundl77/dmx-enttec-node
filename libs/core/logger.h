@@ -20,6 +20,8 @@ using LogModule = StrongTypedef<std::string, struct LogModuleTag>;
 void SetGlobalLogLevel(int logLevel);
 uint8_t GetGlobalLogLevel();
 
+std::string LogLevelToString(int logLevel);
+
 inline decltype(auto) GetLocalTime()
 {
 	std::chrono::zoned_time time {std::chrono::current_zone(), std::chrono::system_clock::now()};

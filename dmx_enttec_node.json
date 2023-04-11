@@ -1,4 +1,5 @@
 {
+  "log_level": "info",
   "control_listen_port": 19001,
   "dmx_universe": 0,
   "dmx_address_space_start": 0,

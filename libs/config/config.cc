@@ -6,7 +6,24 @@
 
 namespace DmxEnttecNode {
 
-static const LogModule LM_CONFIG {"CONFIG"};
+namespace {
+const LogModule LM_CONFIG {"CONFIG"};
+
+int ParseLogLevel(const std::string& logLevel)
+{
+	if (logLevel == "debug")
+		return LL_DEBUG;
+	if (logLevel == "info")
+		return LL_INFO;
+	if (logLevel == "warn")
+		return LL_WARN;
+	if (logLevel == "error")
+		return LL_ERROR;
+
+	throw std::runtime_error("unknown log-level '" + logLevel + "', options are: debug|info|warn|error");
+}
+
+}
 
 std::optional<Config> Config::FromFile(const std::string& filePath)
 {
@@ -23,6 +40,13 @@ std::optional<Config> Config::FromFile(const std::string& filePath)
 	Config config {};
 
 	LOG(LL_INFO, LM_CONFIG, "loading config..");
+
+	std::string logLevel = json["log_level"];
+	config.mLogLevel = ParseLogLevel(logLevel);
+	LOG(LL_INFO, LM_CONFIG, "log_level: %s", LogLevelToString(config.mLogLevel).c_str());
+
+	config.mControlListenPort = json["control_listen_port"];
+	LOG(LL_INFO, LM_CONFIG, "control_listen_port: %d", config.mControlListenPort);
 
 	config.mControlListenPort = json["control_listen_port"];
 	LOG(LL_INFO, LM_CONFIG, "control_listen_port: %d", config.mControlListenPort);

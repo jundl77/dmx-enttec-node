@@ -16,6 +16,7 @@ class Config
 public:
 	static std::optional<Config> FromFile(const std::string& filename);
 
+	int mLogLevel;
 	std::string mAppName;
 	std::string mDeviceName;
 	std::string mDataFolder;
