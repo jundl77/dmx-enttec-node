@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <thread>
 #include <stdexcept>
+#include <cstdint>
 
 namespace DmxEnttecNode {
 
@@ -14,27 +15,9 @@ using NanoPosixTime = std::chrono::nanoseconds;
 namespace tsc_impl
 {
 
-inline uint64_t rdtscp()
-{
-	uint64_t rax, rcx, rdx;
-	__asm__ __volatile__("rdtscp" : "=a"(rax), "=d"(rdx), "=c"(rcx));
-	return (rdx << 32) + rax;
-}
-
-inline void cpuid()
-{
-	uint64_t rax, rbx, rcx, rdx;
-	__asm__ __volatile__("cpuid" : "=a"(rax), "=b"(rbx), "=d"(rdx), "=c"(rcx));
-}
-
-inline uint64_t rdtscp(int& chip, int& core)
-{
-	uint64_t rax, rcx, rdx;
-	__asm__ __volatile__("rdtscp" : "=a"(rax), "=d"(rdx), "=c"(rcx));
-	chip = static_cast<int>((rcx & 0xFFF000) >> 12);
-	core = static_cast<int>(rcx & 0xFFF);
-	return (rdx << 32) + rax;
-}
+inline uint64_t rdtscp();
+inline void cpuid();
+inline uint64_t rdtscp(int& chip, int& core);
 
 static double& TSC_GetFrequencyGHz()
 {

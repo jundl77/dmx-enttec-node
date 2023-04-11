@@ -3,8 +3,6 @@
 #include "artnet_handler.h"
 #include <config/config.h>
 #include <core/event_loop.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 
 extern "C"
 {

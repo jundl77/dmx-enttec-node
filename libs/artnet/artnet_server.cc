@@ -2,18 +2,24 @@
 
 #include <core/logger.h>
 #include <core/throw_if.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <fcntl.h>
 #include <cstring>
+
+#ifdef WIN32
+#include "winsock.h"
+#else
+#include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 
 extern "C"
 {
 #include "libartnet/packets.h"
 #include "libartnet/private.h"
+#include "libartnet/artnet.h"
 }
 
 namespace DmxEnttecNode {
@@ -90,7 +96,8 @@ void ArtnetServer::StartListening()
 	mNodeSd = artnet_get_sd(mNode);
 	mTv.tv_sec = 0;
 	mTv.tv_usec = 0;
-	fcntl(mNodeSd, F_SETFL, O_NONBLOCK);
+	// TODO: do something for windows
+	//fcntl(mNodeSd, F_SETFL, O_NONBLOCK);
 
 	ConfigureArtnetPollReplyTemplate(mNode);
 
@@ -144,6 +151,7 @@ int ArtnetServer::DmxHandler(artnet_node n, void* packet, void* data)
 // find the ip address by binding to google's dns server, and looking at our ip that way
 std::optional<std::string> ArtnetServer::FindIpAddress()
 {
+#ifndef WIN32
 	const char* google_dns_server = "8.8.8.8";
 	int dns_port = 53;
 
@@ -187,6 +195,9 @@ std::optional<std::string> ArtnetServer::FindIpAddress()
 		LOG(LL_ERROR, LM_ARTNET, "unable to find local ip using google dns lookup");
 		return std::nullopt;
 	}
+#else
+	return "127.0.0.1";
+#endif
 }
 
 }

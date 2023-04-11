@@ -34,10 +34,10 @@ typedef unsigned long in_addr_t;
 
 #include "common.h"
 
-/* the external storage class is "extern" in UNIX; in MSW it's ugly. */
+/* the external storage class is "ftd2xx" in UNIX; in MSW it's ugly. */
 #ifndef EXTERN
 #ifdef MSW
-#define EXTERN __declspec(dllexport) extern
+#define EXTERN __declspec(dllexport) ftd2xx
 #else
 #define EXTERN extern
 #endif /* MSW */

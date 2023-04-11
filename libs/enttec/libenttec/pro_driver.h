@@ -9,10 +9,12 @@
 #include <assert.h>
 #include <tchar.h>
 #include <time.h>
-#include "ftd2xx.h"
+#include "ftd2xx/ftd2xx.h"
 
 #ifdef _MSC_VER
-	#include "ms_stdint.h"
+// TODO: do we need "ms_stdint.h" ?
+//	#include "ms_stdint.h"
+	#include <stdint.h>
 #else
 	#include <stdint.h>
 #endif
