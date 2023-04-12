@@ -21,8 +21,6 @@ public:
 	RunHot mRunHot { RunHot::No };
 	int mCoreAffinity; // core number on which to run, only takes effect if mRunHot is RunHot::Yes
 	std::string mAppName;
-	std::string mDeviceName;
-	std::string mDataFolder;
 	uint32_t mControlListenPort;
 
 	uint16_t mDmxUniverse;

@@ -45,8 +45,9 @@ bool SetAffinity(int core)
 		return true;
 	}
 	return false;
-#endif
+#else
 	return false;
+#endif
 }
 
 int main(int argc, char *argv[])
@@ -85,14 +86,12 @@ int main(int argc, char *argv[])
 	}
 
 	config->mAppName = "dmx_enttec_node";
-	config->mDeviceName = "PC";
-
-	EventLoop loop;
-	App app = App(*config, loop);
-	app.Start();
 
 	try
 	{
+		EventLoop loop;
+		App app = App(*config, loop);
+		app.Start();
 		loop.Run(config->mRunHot);
 	}
 	catch (const std::exception& e)
