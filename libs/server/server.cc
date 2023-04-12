@@ -11,6 +11,7 @@ Server::Server(const Config& config, EventLoop& loop)
 	: mConfig(config)
 	, mEventLoop(loop)
 	, mArtnetServer(mConfig, mEventLoop, *this)
+	, mUsbClient(mEventLoop)
 {
 }
 

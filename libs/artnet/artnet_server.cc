@@ -26,6 +26,7 @@ namespace DmxEnttecNode {
 
 static const LogModule LM_ARTNET {"ARTNET_SERVERR"};
 static IArtnetHandler* sArtnetHandlerPtr = nullptr; // so that we have access from the C library
+static int sPacketsReceivedCounter = 0;
 
 namespace {
 
@@ -110,6 +111,7 @@ void ArtnetServer::StartListening()
 	LOG(LL_INFO, LM_ARTNET, "started listening on %s:%d", localIpAddress->c_str(), ARTNET_PORT);
 	mListenSocketPollHandle = mEventLoop.AddPoller([this]() { PollSocket(); });
 	mArtPollReplyHandle = mEventLoop.AddTimer(1s, [this]() { SendArtPollReply(); });
+	mMetricsHandle = mEventLoop.AddTimer(5s, [this]() { ReportMetrics(); });
 }
 
 void ArtnetServer::PollSocket()
@@ -151,6 +153,7 @@ int ArtnetServer::DmxHandler(artnet_node n, void* packet, void* data)
 	THROW_IF(sizeof(artnetPacket->data.admx.data) != DmxFrameSize, "unexpected dmx frame size");
 	const DmxFrame dmxChannels = DmxFrame(artnetPacket->data.admx.data);
 	sArtnetHandlerPtr->OnDmxMessage(dmxChannels, artnetPacket->data.admx.universe);
+	sPacketsReceivedCounter += 1;
 	return 0;
 }
 
@@ -204,6 +207,12 @@ std::optional<std::string> ArtnetServer::FindIpAddress()
 #else
 	return "127.0.0.1";
 #endif
+}
+
+void ArtnetServer::ReportMetrics()
+{
+	LOG(LL_INFO, LM_ARTNET, "received %d dmx packets in the last 5 sec", sPacketsReceivedCounter);
+	sPacketsReceivedCounter = 0;
 }
 
 }

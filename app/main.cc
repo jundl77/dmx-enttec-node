@@ -33,21 +33,21 @@ std::optional<Config> LoadConfig(int argc, char *argv[])
 	return Config::FromFile(filePath);
 }
 
-bool SetAffinity(int core)
+void SetAffinity(int core)
 {
+	bool success = false;
 #ifdef WIN32
 	HANDLE process = GetCurrentProcess();
 	DWORD_PTR processAffinityMask = 1 << core;
 
-	BOOL success = SetProcessAffinityMask(process, processAffinityMask);
-	if (success)
-	{
-		return true;
-	}
-	return false;
+	BOOL affinitySuccess = SetProcessAffinityMask(process, processAffinityMask);
+	BOOL prioSuccess = SetPriorityClass(process, REALTIME_PRIORITY_CLASS);
+	success = affinitySuccess && prioSuccess;
 #else
 	return false;
 #endif
+
+	LOG(LL_INFO, LM_MAIN, "set core affinity to core: %d (success=%d)", core, success);
 }
 
 int main(int argc, char *argv[])
@@ -82,7 +82,6 @@ int main(int argc, char *argv[])
 	{
 		LOG(LL_INFO, LM_MAIN, "running hot");
 		SetAffinity(config->mCoreAffinity);
-		LOG(LL_INFO, LM_MAIN, "set core affinity to core: %d", config->mCoreAffinity);
 	}
 
 	config->mAppName = "dmx_enttec_node";

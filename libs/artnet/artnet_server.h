@@ -24,6 +24,7 @@ private:
 	std::optional<std::string> FindIpAddress();
 
 	void SendArtPollReply();
+	void ReportMetrics();
 
 	// libartnet handlers
 	static int FirmwareHandler(artnet_node n, int ubea, uint16_t *data, int length, void *d);
@@ -35,6 +36,7 @@ private:
 	IArtnetHandler& mHandler;
 	ScopedHandler mListenSocketPollHandle;
 	ScopedHandler mArtPollReplyHandle;
+	ScopedHandler mMetricsHandle;
 
 	artnet_node mNode {NULL};
 	int mNodeSd;
