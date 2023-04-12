@@ -8,3 +8,8 @@ Built for windows, but it shouldn't be too difficult to make it work on linux.
 
 1. Clone submodules: `git sm update --init`
 2. Build with cmake.
+
+
+### Dependencies
+
+- njson
