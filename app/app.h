@@ -18,9 +18,6 @@ public:
 	void Start();
 
 private:
-	void CheckConnection() const;
-
-private:
 	const Config& mConfig;
 	EventLoop& mEventLoop;
 	Server mServer;

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "usb_client_if.h"
 #include "enttec/libenttec/ftd2xx/ftd2xx.h"
 #include <core/types.h>
 #include <core/event_loop.h>
@@ -9,7 +8,7 @@
 
 namespace DmxEnttecNode {
 
-class EnttecUSBClient : public IEnttecUSBClient
+class EnttecUSBClient
 {
 public:
 	explicit EnttecUSBClient(EventLoop&);
@@ -28,7 +27,7 @@ private:
 	uint8_t mNumDevices = 0;
 	uint16_t mDeviceConnected = 0;
 
-	unsigned char mSerializedFrame[DmxFrameSize + 1];
+	uint8_t mSerializedFrame[DmxFrameSize + 1] {};
 	bool mIsNewFrame = false;
 	int mSendCounter = 0;
 

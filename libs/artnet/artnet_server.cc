@@ -76,8 +76,8 @@ void ArtnetServer::StartListening()
 		exit(1);
 	}
 
-	artnet_set_short_name(mNode, "Enttec-USB Pro Node");
-	artnet_set_long_name(mNode, "ArtNet Enttec-USB Pro Node");
+	artnet_set_short_name(mNode, "Enttec USB Pro");
+	artnet_set_long_name(mNode, "ArtNet Enttec USB Pro Node");
 	artnet_set_node_type(mNode, ARTNET_NODE);
 	artnet_dump_config(mNode);
 
