@@ -23,7 +23,7 @@ Engine::~Engine()
 void Engine::Start()
 {
 	mArtnetServer.StartListening();
-	//mUsbClient.Start();
+	mUsbClient.Start();
 	mOverlayServer.Start();
 }
 
