@@ -1,6 +1,7 @@
 #include "usb_client.h"
 #include "libenttec/usb_pro.h"
 #include <core/logger.h>
+#include <core/logger.h>
 #include <core/throw_if.h>
 #include <string>
 
@@ -39,12 +40,25 @@ void EnttecUSBClient::Start()
 	mMetricsHandle = mEventLoop.AddTimer(5s, [this]() { ReportMetrics(); });
 }
 
-void EnttecUSBClient::Send(const DmxFrame& dmxFrame)
+void EnttecUSBClient::UpdateFrame(const DmxFrame& dmxFrame)
 {
 	// we need to shift the whole frame up by one to set DMX_PACKET_START_CODE
 	std::memset(mSerializedFrame, 0, DmxFrameSize + 1);
 	std::memcpy(mSerializedFrame + 1, dmxFrame.data(), dmxFrame.size());
 	mSerializedFrame[0] = DMX_PACKET_START_CODE;
+	ApplyOverlay(mLastOverlayMsg);
+	mIsNewFrame = true;
+}
+
+void EnttecUSBClient::ApplyOverlay(const OverlayIdl::OverlayMessage& msg)
+{
+	for (int i = 0; i <= msg.mNumOverlays; i++)
+	{
+		const int start = msg.mOverlays[i].mStart;
+		const int length = msg.mOverlays[i].mLength;
+		std::memcpy(mSerializedFrame + 1 + start, msg.mDmxData + start, length);
+	}
+	mLastOverlayMsg = msg;
 	mIsNewFrame = true;
 }
 
@@ -67,7 +81,7 @@ void EnttecUSBClient::FlushFrame()
 	}
 	mSendCounter += 1;
 	mIsNewFrame = false;
-	DEBUG_LOG(LL_DEBUG, LM_USB_CLIENT, "sent DMX frame to USB device successfully, frame: %s", ToStream(dmxFrame).c_str());
+	DEBUG_LOG(LL_DEBUG, LM_USB_CLIENT, "sent DMX frame to USB device successfully, frame: %s", HexToString<513>(mSerializedFrame).c_str());
 }
 
 void EnttecUSBClient::ReloadDriver()

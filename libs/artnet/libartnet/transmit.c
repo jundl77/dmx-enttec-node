@@ -54,7 +54,7 @@ int artnet_tx_poll(node n, const char *ip, artnet_ttm_value_t ttm) {
     return artnet_net_send(n, &p);
 
   } else {
-    artnet_error("Not sending poll, not a server or raw device");
+    artnet_error("Not sending poll, not a engine or raw device");
     return ARTNET_EACTION;
   }
 }

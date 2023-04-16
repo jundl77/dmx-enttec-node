@@ -157,7 +157,7 @@ int ArtnetServer::DmxHandler(artnet_node n, void* packet, void* data)
 	return 0;
 }
 
-// find the ip address by binding to google's dns server, and looking at our ip that way
+// find the ip address by binding to google's dns engine, and looking at our ip that way
 std::optional<std::string> ArtnetServer::FindIpAddress()
 {
 #ifndef WIN32
@@ -170,7 +170,7 @@ std::optional<std::string> ArtnetServer::FindIpAddress()
 	// socket could not be created
 	if (sock < 0)
 	{
-		LOG(LL_ERROR, LM_ARTNET, "unable to create socket to google dns server to find local ip of socket");
+		LOG(LL_ERROR, LM_ARTNET, "unable to create socket to google dns engine to find local ip of socket");
 		return std::nullopt;
 	}
 
@@ -182,7 +182,7 @@ std::optional<std::string> ArtnetServer::FindIpAddress()
 	int err = connect(sock, (const struct sockaddr*)&serv, sizeof(serv));
 	if (err < 0)
 	{
-		LOG(LL_ERROR, LM_ARTNET, "unable to connect socket to google dns server to find local ip of socket");
+		LOG(LL_ERROR, LM_ARTNET, "unable to connect socket to google dns engine to find local ip of socket");
 		return std::nullopt;
 	}
 

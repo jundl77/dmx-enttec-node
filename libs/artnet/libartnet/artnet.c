@@ -566,7 +566,7 @@ int artnet_send_poll(artnet_node vn,
     return artnet_tx_poll(n, ip, talk_to_me);
   }
 
-  artnet_error("%s : Not sending poll, not a server or raw device", __FUNCTION__);
+  artnet_error("%s : Not sending poll, not a engine or raw device", __FUNCTION__);
   return ARTNET_ESTATE;
 }
 
@@ -1105,7 +1105,7 @@ uint8_t *artnet_read_dmx(artnet_node vn, int port_id, int *length) {
 //--------------------------------------
 // Functions to change the node state (setters)
 
-// type : server, node, mserver, raw
+// type : engine, node, mserver, raw
 int artnet_set_node_type(artnet_node vn, artnet_node_type type) {
   node n = (node) vn;
   check_nullnode(vn);

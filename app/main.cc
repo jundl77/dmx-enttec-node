@@ -53,7 +53,7 @@ void SetAffinity(int core)
 int main(int argc, char *argv[])
 {
 	LOG(LL_INFO, LM_MAIN, "==================================================");
-	LOG(LL_INFO, LM_MAIN, "Starting dmx-enttec-node server");
+	LOG(LL_INFO, LM_MAIN, "Starting dmx-enttec-node engine");
 	LOG(LL_INFO, LM_MAIN, "==================================================");
 	LOG(LL_INFO, LM_MAIN, "");
 	LOG(LL_INFO, LM_MAIN, "");

@@ -5,7 +5,7 @@ add_executable(dmx_enttec_node_app
 
 target_link_libraries(dmx_enttec_node_app
         dmx_enttec_node_config_lib
-        dmx_enttec_node_server_lib)
+        dmx_enttec_node_engine_lib)
 
 target_link_libraries(dmx_enttec_node_app)
 

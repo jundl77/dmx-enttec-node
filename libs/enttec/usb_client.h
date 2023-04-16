@@ -1,6 +1,7 @@
 #pragma once
 
 #include "enttec/libenttec/ftd2xx/ftd2xx.h"
+#include <overlay_server/overlay_proto.h>
 #include <core/types.h>
 #include <core/event_loop.h>
 #include <core/scoped_handler.h>
@@ -15,7 +16,8 @@ public:
 	~EnttecUSBClient();
 
 	void Start();
-	void Send(const DmxFrame&);
+	void UpdateFrame(const DmxFrame&);
+	void ApplyOverlay(const OverlayIdl::OverlayMessage& msg);
 
 private:
 	void FlushFrame();
@@ -28,6 +30,7 @@ private:
 	uint16_t mDeviceConnected = 0;
 
 	uint8_t mSerializedFrame[DmxFrameSize + 1] {};
+	OverlayIdl::OverlayMessage mLastOverlayMsg;
 	bool mIsNewFrame = false;
 	int mSendCounter = 0;
 

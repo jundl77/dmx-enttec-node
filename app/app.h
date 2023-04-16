@@ -2,7 +2,7 @@
 
 #include <config/config.h>
 #include <core/event_loop.h>
-#include <server/server.h>
+#include <engine/engine.h>
 
 #include <string>
 #include <memory>
@@ -20,7 +20,7 @@ public:
 private:
 	const Config& mConfig;
 	EventLoop& mEventLoop;
-	Server mServer;
+	Engine mEngine;
 };
 
 }

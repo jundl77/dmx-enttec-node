@@ -123,7 +123,7 @@ typedef enum {
  * Enum describing the type of node
  */
 typedef enum {
-  ARTNET_SRV,      /**< An ArtNet server (transmitts DMX data) */
+  ARTNET_SRV,      /**< An ArtNet engine (transmitts DMX data) */
   ARTNET_NODE,    /**< An ArtNet node   (dmx reciever) */
   ARTNET_MSRV,    /**< A Media Server */
   ARTNET_ROUTE,    /**< No Effect currently */
