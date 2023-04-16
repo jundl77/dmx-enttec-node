@@ -6,6 +6,7 @@
 #include <core/event_loop.h>
 #include <core/scoped_handler.h>
 #include <cstdint>
+#include <optional>
 
 namespace DmxEnttecNode {
 
@@ -17,7 +18,7 @@ public:
 
 	void Start();
 	void UpdateFrame(const DmxFrame&);
-	void ApplyOverlay(const OverlayIdl::OverlayMessage& msg);
+	void ApplyOverlay(const OverlayIdl::OverlayMessage& msg, bool bufferOverlay);
 
 private:
 	void FlushFrame();
@@ -30,7 +31,7 @@ private:
 	uint16_t mDeviceConnected = 0;
 
 	uint8_t mSerializedFrame[DmxFrameSize + 1] {};
-	OverlayIdl::OverlayMessage mLastOverlayMsg;
+	std::optional<OverlayIdl::OverlayMessage> mLastOverlayMsg;
 	bool mIsNewFrame = false;
 	int mSendCounter = 0;
 

@@ -48,7 +48,7 @@ void Engine::OnOverlayMessage(const OverlayIdl::OverlayMessage& msg)
 				  mConfig.mDmxUniverse, msg.mUniverse);
 		return;
 	}
-	mUsbClient.ApplyOverlay(msg);
+	mUsbClient.ApplyOverlay(msg, true);
 }
 
 }

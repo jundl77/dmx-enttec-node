@@ -46,11 +46,14 @@ void EnttecUSBClient::UpdateFrame(const DmxFrame& dmxFrame)
 	std::memset(mSerializedFrame, 0, DmxFrameSize + 1);
 	std::memcpy(mSerializedFrame + 1, dmxFrame.data(), dmxFrame.size());
 	mSerializedFrame[0] = DMX_PACKET_START_CODE;
-	ApplyOverlay(mLastOverlayMsg);
+	if (mLastOverlayMsg)
+	{
+		ApplyOverlay(*mLastOverlayMsg, false);
+	}
 	mIsNewFrame = true;
 }
 
-void EnttecUSBClient::ApplyOverlay(const OverlayIdl::OverlayMessage& msg)
+void EnttecUSBClient::ApplyOverlay(const OverlayIdl::OverlayMessage& msg, bool bufferOverlay)
 {
 	for (int i = 0; i <= msg.mNumOverlays; i++)
 	{
@@ -58,7 +61,10 @@ void EnttecUSBClient::ApplyOverlay(const OverlayIdl::OverlayMessage& msg)
 		const int length = msg.mOverlays[i].mLength;
 		std::memcpy(mSerializedFrame + 1 + start, msg.mDmxData + start, length);
 	}
-	mLastOverlayMsg = msg;
+	if (bufferOverlay)
+	{
+		mLastOverlayMsg = msg;
+	}
 	mIsNewFrame = true;
 }
 
