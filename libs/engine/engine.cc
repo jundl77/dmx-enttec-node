@@ -23,8 +23,8 @@ Engine::~Engine()
 void Engine::Start()
 {
 	mArtnetServer.StartListening();
-	mUsbClient.Start();
 	mOverlayServer.Start();
+	mUsbClient.Start();
 }
 
 void Engine::OnDmxMessage(const DmxFrame& frame, int universe)
