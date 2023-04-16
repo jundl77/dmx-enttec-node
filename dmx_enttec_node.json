@@ -2,8 +2,6 @@
   "log_level": "info",
   "run_hot": true,
   "core_affinity": 4,
-  "control_listen_port": 19001,
-  "dmx_universe": 0,
-  "dmx_address_space_start": 0,
-  "dmx_address_space_range": 30
+  "overlay_listen_port": 19001,
+  "dmx_universe": 0
 }

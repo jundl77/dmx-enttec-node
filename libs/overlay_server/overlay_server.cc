@@ -33,7 +33,7 @@ OverlayServer::~OverlayServer()
 
 void OverlayServer::Start()
 {
-	StartServer(1234);
+	StartServer(mConfig.mOverlayListenPort);
 	mListenSocketPollHandle = mEventLoop.AddPoller([this]() { PollSocket(); });
 	mMetricsHandle = mEventLoop.AddTimer(5s, [this]() { ReportMetrics(); });
 }
