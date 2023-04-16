@@ -55,7 +55,7 @@ void EnttecUSBClient::UpdateFrame(const DmxFrame& dmxFrame)
 
 void EnttecUSBClient::ApplyOverlay(const OverlayIdl::OverlayMessage& msg, bool bufferOverlay)
 {
-	for (int i = 0; i <= msg.mNumOverlays; i++)
+	for (int i = 0; i < msg.mNumOverlays; i++)
 	{
 		const int start = msg.mOverlays[i].mStart;
 		const int length = msg.mOverlays[i].mLength;
