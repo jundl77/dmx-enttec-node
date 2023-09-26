@@ -7,9 +7,9 @@ class DmxFrame:
         self.data: list = [0] * 512
 
     def pack(self):
-        msg = pack('b', self.data[0])
+        msg = pack('B', self.data[0])
         for i in range(1, 512):
-            msg += pack('b', self.data[i])
+            msg += pack('B', self.data[i])
         return msg
 
 
@@ -55,10 +55,12 @@ def create_message(universe, overlays: DmxOverlays):
 
 
 UDP_IP = "127.0.0.1"
-UDP_PORT = 1234
+UDP_PORT = 19001
 
 overlays = DmxOverlays()
-overlays.add_overlay(100, 10, [5] * 10)
+overlays.add_overlay(0, 512, [0] * 512)
+#overlays.add_overlay(65, 31, [128] * 31)
+#overlays.add_overlay(0, 12, [0] * 12)
 MESSAGE = create_message(0, overlays)
 
 print("UDP target IP: %s" % UDP_IP)
