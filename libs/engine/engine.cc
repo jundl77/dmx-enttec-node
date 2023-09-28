@@ -2,6 +2,7 @@
 #include <core/logger.h>
 #include <iostream>
 #include <string>
+#include "opus_test.h"
 
 namespace DmxEnttecNode {
 
@@ -22,6 +23,7 @@ Engine::~Engine()
 
 void Engine::Start()
 {
+	TestPlay();
 	mArtnetServer.StartListening();
 	mOverlayServer.Start();
 	mUsbClient.Start();

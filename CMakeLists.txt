@@ -13,6 +13,7 @@ endif()
 include(cmake/FindFTD2XX.cmake)
 
 add_subdirectory(x_njson)
+add_subdirectory(x_libsoundio)
 
 add_subdirectory(app)
 add_subdirectory(libs)

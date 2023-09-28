@@ -8,7 +8,9 @@ target_link_libraries(${name}
         dmx_enttec_node_config_lib
         dmx_enttec_node_artnet_lib
         dmx_enttec_node_overlay_server_lib
+        libsoundio_shared
         )
 
 target_compile_options(${name} PRIVATE ${cxx_compile_options})
+target_include_directories(${name} PRIVATE ../../x_libsoundio)
 target_include_directories(${name} PUBLIC ..)

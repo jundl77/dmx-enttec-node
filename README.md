@@ -13,3 +13,4 @@ Built for windows, but it shouldn't be too difficult to make it work on linux.
 ### Dependencies
 
 - njson
+- libsoundio

@@ -15,3 +15,8 @@ add_custom_command (TARGET dmx_enttec_node_app POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${FTD2XX_DLL} ${CMAKE_BINARY_DIR}/app
     )
+
+add_custom_command (TARGET dmx_enttec_node_app POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${CMAKE_BINARY_DIR}/x_libsoundio/soundio.dll ${CMAKE_BINARY_DIR}/app
+    )
