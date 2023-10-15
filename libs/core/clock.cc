@@ -9,38 +9,47 @@ namespace DmxEnttecNode::tsc_impl {
 
 uint64_t rdtscp()
 {
-#ifndef WIN32
-	uint64_t rax, rcx, rdx;
+#if defined(WIN32) // WINDOWS
+    return GetTickCount64();
+#elif defined(__arm64__) // OSX ARM based
+    uint64_t val;
+    __asm__ __volatile__("mrs %0, cntvct_el0" : "=r" (val));
+    return val;
+#else // LINUX
+    uint64_t rax, rcx, rdx;
 	__asm__ __volatile__("rdtscp" : "=a"(rax), "=d"(rdx), "=c"(rcx));
 	return (rdx << 32) + rax;
-#else
-	// TODO: revise, this probably does not work
-	return GetTickCount64();
 #endif
 }
 
 void cpuid()
 {
-	// TODO: revise, this probably does not work
-
-#ifndef WIN32
-	uint64_t rax, rbx, rcx, rdx;
-	__asm__ __volatile__("cpuid" : "=a"(rax), "=b"(rbx), "=d"(rdx), "=c"(rcx));
+#if defined(WIN32) // WINDOWS
+    // TODO: impl for windows
+#elif defined(__arm64__) // OSX ARM based
+    // TODO: impl for mac
+#else // LINUX
+    uint64_t rax, rbx, rcx, rdx;
+    __asm__ __volatile__("cpuid" : "=a"(rax), "=b"(rbx), "=d"(rdx), "=c"(rcx));
 #endif
 }
 
 uint64_t rdtscp(int& chip, int& core)
 {
-#ifndef WIN32
-	uint64_t rax, rcx, rdx;
+#if defined(WIN32) // WINDOWS
+    // TODO: revise, this probably does not work
+    return GetTickCount64();
+#elif defined(__arm64__) // OSX ARM based
+    // TODO: revise, this probably does not work
+    uint64_t val;
+    __asm__ __volatile__("mrs %0, cntvct_el0" : "=r" (val));
+    return val;
+#else // LINUX
+    uint64_t rax, rcx, rdx;
 	__asm__ __volatile__("rdtscp" : "=a"(rax), "=d"(rdx), "=c"(rcx));
 	chip = static_cast<int>((rcx & 0xFFF000) >> 12);
 	core = static_cast<int>(rcx & 0xFFF);
 	return (rdx << 32) + rax;
-#else
-	// TODO: revise, this probably does not work
-
-	return GetTickCount64();
 #endif
 }
 

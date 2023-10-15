@@ -189,19 +189,6 @@ static void underflow_callback(struct SoundIoOutStream *outstream) {
 	//fprintf(stderr, "underflow %d\n", ++count);
 }
 
-static int usage(char *exe) {
-	fprintf(stderr, "Usage: %s [options]\n"
-					"Options:\n"
-					"  [--backend dummy|alsa|pulseaudio|jack|coreaudio|wasapi]\n"
-					"  [--in-device id]\n"
-					"  [--in-raw]\n"
-					"  [--out-device id]\n"
-					"  [--out-raw]\n"
-					"  [--latency seconds]\n"
-			, exe);
-	return 1;
-}
-
 int TestPlay() {
 	enum SoundIoBackend backend = SoundIoBackendNone;
 	std::string in_device_id = "{0.0.1.00000000}.{fc4ccf8c-a461-4803-a39b-2b80258cbbbc}";
