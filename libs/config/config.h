@@ -12,20 +12,28 @@
 
 namespace DmxEnttecNode {
 
+enum class AppType
+{
+	AudioSender,
+	RecieverNode
+};
+
 class Config
 {
 public:
-	static std::optional<Config> FromFile(const std::string& filename);
+	static std::optional<Config> FromFile(const std::string& filename, AppType);
 
 	int mLogLevel;
 	RunHot mRunHot { RunHot::No };
 	int mCoreAffinity; // core number on which to run, only takes effect if mRunHot is RunHot::Yes
 	std::string mAppName;
-	uint32_t mOverlayListenPort;
 
+	uint32_t mOverlayListenPort;
 	uint16_t mDmxUniverse;
-	uint16_t mDmxAddressSpaceStart;
-	uint16_t mDmxAddressSpaceRange;
+
+	std::string mAudioDeviceId;
+	std::string mAudioFormat;
+	int mAudioSampleRate;
 };
 
 }

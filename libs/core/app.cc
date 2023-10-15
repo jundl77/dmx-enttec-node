@@ -17,7 +17,7 @@ namespace {
 
 const LogModule LM_MAIN {"MAIN"};
 
-std::optional<Config> LoadConfig(int argc, char *argv[])
+std::optional<Config> LoadConfig(int argc, char *argv[], AppType appType)
 {
 	std::string filePath = "receiver_node.json";
 	if (argc == 2)
@@ -30,7 +30,7 @@ std::optional<Config> LoadConfig(int argc, char *argv[])
 		return std::nullopt;
 	}
 
-	return Config::FromFile(filePath);
+	return Config::FromFile(filePath, appType);
 }
 
 void SetAffinity(int core)
@@ -52,7 +52,7 @@ void SetAffinity(int core)
 
 }
 
-std::optional<AppContext> SetupApp(int argc, char *argv[], const std::string& appName)
+std::optional<AppContext> SetupApp(int argc, char *argv[], const std::string& appName, AppType appType)
 {
 	LOG(LL_INFO, LM_MAIN, "==================================================");
 	LOG(LL_INFO, LM_MAIN, "Starting %s engine", appName.c_str());
@@ -71,7 +71,7 @@ std::optional<AppContext> SetupApp(int argc, char *argv[], const std::string& ap
 	Clock::Initialise();
 	SetGlobalLogLevel(LL_DEBUG);
 
-	std::optional<Config> config = LoadConfig(argc, argv);
+	std::optional<Config> config = LoadConfig(argc, argv, appType);
 	if (!config)
 	{
 		LOG(LL_ERROR, LM_MAIN, "error loading config file, stopping");

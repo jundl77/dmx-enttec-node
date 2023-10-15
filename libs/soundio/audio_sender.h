@@ -2,7 +2,7 @@
 
 #include <config/config.h>
 #include <core/event_loop.h>
-#include <engine/engine.h>
+#include <soundio/soundio.h>
 
 #include <string>
 #include <memory>
@@ -16,11 +16,15 @@ public:
 	~AudioSender();
 
 	void Start();
+	void SendAudioBytes(const char* data, size_t size);
 
 private:
 	const Config& mConfig;
 	EventLoop& mEventLoop;
-	Engine mEngine;
+
+	SoundIo* mSoundIo;
+	SoundIoDevice* mInputDevice;
+	SoundIoInStream* mInStream;
 };
 
 }

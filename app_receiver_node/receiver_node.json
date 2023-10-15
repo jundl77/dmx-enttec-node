@@ -3,5 +3,6 @@
   "run_hot": true,
   "core_affinity": 4,
   "overlay_listen_port": 19001,
-  "dmx_universe": 0
+  "dmx_universe": 0,
+  "audio_device_id": "{0.0.0.00000000}.{75e827d5-9c89-4bdd-afbb-1d8b33015814}"
 }

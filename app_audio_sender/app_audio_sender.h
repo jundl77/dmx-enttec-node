@@ -3,7 +3,7 @@
 #include <config/config.h>
 #include <core/app.h>
 #include <core/event_loop.h>
-#include <engine/engine.h>
+#include <soundio/audio_sender.h>
 
 #include <string>
 #include <memory>
@@ -22,7 +22,7 @@ public:
 private:
 	const Config& mConfig;
 	EventLoop& mEventLoop;
-	Engine mEngine;
+	AudioSender mAudioSender;
 };
 
 }

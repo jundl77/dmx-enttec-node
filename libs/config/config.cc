@@ -30,9 +30,24 @@ RunHot ParseRunHot(bool runHot)
 	return RunHot::No;
 }
 
+void LoadConfigAudioSender(Config& config, njson& json)
+{
+	// no-op
 }
 
-std::optional<Config> Config::FromFile(const std::string& filePath)
+void LoadConfigReceiverNode(Config& config, njson& json)
+{
+	config.mOverlayListenPort = json["overlay_listen_port"];
+	LOG(LL_INFO, LM_CONFIG, "overlay_listen_port: %d", config.mOverlayListenPort);
+
+	config.mDmxUniverse = json["dmx_universe"];
+	THROW_IF(config.mDmxUniverse < 0, "dmx universe cannot be negative");
+	LOG(LL_INFO, LM_CONFIG, "dmx_universe: %d", config.mDmxUniverse);
+}
+
+}
+
+std::optional<Config> Config::FromFile(const std::string& filePath, AppType appType)
 {
 	LOG(LL_INFO, LM_CONFIG, "loading config from file: %s", filePath.c_str());
 
@@ -58,12 +73,23 @@ std::optional<Config> Config::FromFile(const std::string& filePath)
 	config.mCoreAffinity = json["core_affinity"];
 	LOG(LL_INFO, LM_CONFIG, "core_affinity: %d", config.mCoreAffinity);
 
-	config.mOverlayListenPort = json["overlay_listen_port"];
-	LOG(LL_INFO, LM_CONFIG, "overlay_listen_port: %d", config.mOverlayListenPort);
+	config.mAudioDeviceId = json["audio_device_id"];
+	LOG(LL_INFO, LM_CONFIG, "audio_device_id: %s", config.mAudioDeviceId.c_str());
 
-	config.mDmxUniverse = json["dmx_universe"];
-	THROW_IF(config.mDmxUniverse < 0, "dmx universe cannot be negative");
-	LOG(LL_INFO, LM_CONFIG, "dmx_universe: %d", config.mDmxUniverse);
+	config.mAudioFormat = json["audio_format"];
+	LOG(LL_INFO, LM_CONFIG, "audio_format: %s", config.mAudioFormat.c_str());
+
+	config.mAudioSampleRate = json["audio_sample_rate"];
+	LOG(LL_INFO, LM_CONFIG, "audio_sample_rate: %d", config.mAudioSampleRate);
+
+	switch (appType) {
+		case AppType::AudioSender:
+			LoadConfigAudioSender(config, json);
+			break;
+		case AppType::RecieverNode:
+			LoadConfigReceiverNode(config, json);
+			break;
+	}
 
 	LOG(LL_INFO, LM_CONFIG, "done loading config.");
 

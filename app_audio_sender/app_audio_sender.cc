@@ -11,7 +11,7 @@ static const LogModule LM_APP {"APP"};
 AppAudioSender::AppAudioSender(const Config& config, EventLoop& loop)
 	: mConfig(config)
 	, mEventLoop(loop)
-	, mEngine(mConfig, mEventLoop)
+	, mAudioSender(mConfig, mEventLoop)
 {
 }
 
@@ -22,7 +22,7 @@ AppAudioSender::~AppAudioSender()
 void AppAudioSender::Start()
 {
 	LOG(LL_INFO, LM_APP, "starting %s", mConfig.mAppName.c_str());
-	mEngine.Start();
+	mAudioSender.Start();
 }
 
 }

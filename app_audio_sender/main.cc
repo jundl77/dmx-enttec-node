@@ -5,7 +5,7 @@ using namespace DmxEnttecNode;
 
 int main(int argc, char *argv[])
 {
-	std::optional<AppContext> context = SetupApp(argc, argv, "audio_sender");
+	std::optional<AppContext> context = SetupApp(argc, argv, "audio_sender", AppType::AudioSender);
 	if (!context)
 	{
 		return 1;

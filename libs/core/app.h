@@ -21,7 +21,7 @@ struct AppContext
 	EventLoop mEventLoop;
 };
 
-std::optional<AppContext> SetupApp(int argc, char *argv[], const std::string& appName);
+std::optional<AppContext> SetupApp(int argc, char *argv[], const std::string& appName, AppType appType);
 int RunApp(EventLoop&, App&);
 
 }
