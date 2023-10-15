@@ -1,25 +1,25 @@
 #include "app.h"
-
-#include <config/config.h>
 #include <core/logger.h>
-#include <core/event_loop.h>
 #include <core/clock.h>
 #include <csignal>
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <optional>
 
 #ifdef WIN32
 #include <Windows.h>
 #endif
 
-using namespace DmxEnttecNode;
+namespace DmxEnttecNode {
 
-static const LogModule LM_MAIN {"MAIN"};
+namespace {
+
+const LogModule LM_MAIN {"MAIN"};
 
 std::optional<Config> LoadConfig(int argc, char *argv[])
 {
-	std::string filePath = "dmx_enttec_node.json";
+	std::string filePath = "receiver_node.json";
 	if (argc == 2)
 	{
 		filePath = argv[1];
@@ -50,10 +50,12 @@ void SetAffinity(int core)
 	LOG(LL_INFO, LM_MAIN, "set core affinity to core: %d (success=%d)", core, success);
 }
 
-int main(int argc, char *argv[])
+}
+
+std::optional<AppContext> SetupApp(int argc, char *argv[], const std::string& appName)
 {
 	LOG(LL_INFO, LM_MAIN, "==================================================");
-	LOG(LL_INFO, LM_MAIN, "Starting dmx-enttec-node engine");
+	LOG(LL_INFO, LM_MAIN, "Starting %s engine", appName.c_str());
 	LOG(LL_INFO, LM_MAIN, "==================================================");
 	LOG(LL_INFO, LM_MAIN, "");
 	LOG(LL_INFO, LM_MAIN, "");
@@ -73,7 +75,7 @@ int main(int argc, char *argv[])
 	if (!config)
 	{
 		LOG(LL_ERROR, LM_MAIN, "error loading config file, stopping");
-		return 1;
+		return std::nullopt;
 	}
 	SetGlobalLogLevel(config->mLogLevel);
 	LOG(LL_INFO, LM_MAIN, "setting log-level to: %s", LogLevelToString(config->mLogLevel).c_str());
@@ -84,14 +86,17 @@ int main(int argc, char *argv[])
 		SetAffinity(config->mCoreAffinity);
 	}
 
-	config->mAppName = "dmx_enttec_node";
+	config->mAppName = appName;
 
+	return AppContext{.mConfig=*config, .mEventLoop=EventLoop()};
+}
+
+int RunApp(EventLoop& eventLoop, App& app)
+{
 	try
 	{
-		EventLoop loop;
-		App app = App(*config, loop);
 		app.Start();
-		loop.Run(config->mRunHot);
+		eventLoop.Run(app.GetConfig().mRunHot);
 	}
 	catch (const std::exception& e)
 	{
@@ -99,4 +104,6 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	return 0;
+}
+
 }

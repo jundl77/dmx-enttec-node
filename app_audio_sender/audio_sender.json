@@ -1,0 +1,5 @@
+{
+  "log_level": "info",
+  "run_hot": true,
+  "core_affinity": 4
+}

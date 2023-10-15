@@ -15,5 +15,6 @@ include(cmake/FindFTD2XX.cmake)
 add_subdirectory(x_njson)
 add_subdirectory(x_libsoundio)
 
-add_subdirectory(app)
+add_subdirectory(app_receiver_node)
+add_subdirectory(app_audio_sender)
 add_subdirectory(libs)

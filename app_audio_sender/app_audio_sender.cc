@@ -1,4 +1,4 @@
-#include "app.h"
+#include "app_audio_sender.h"
 #include <core/logger.h>
 
 #include <string>
@@ -8,18 +8,18 @@ namespace DmxEnttecNode {
 
 static const LogModule LM_APP {"APP"};
 
-App::App(const Config& config, EventLoop& loop)
+AppAudioSender::AppAudioSender(const Config& config, EventLoop& loop)
 	: mConfig(config)
 	, mEventLoop(loop)
 	, mEngine(mConfig, mEventLoop)
 {
 }
 
-App::~App()
+AppAudioSender::~AppAudioSender()
 {
 }
 
-void App::Start()
+void AppAudioSender::Start()
 {
 	LOG(LL_INFO, LM_APP, "starting %s", mConfig.mAppName.c_str());
 	mEngine.Start();

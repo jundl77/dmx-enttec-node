@@ -1,27 +1,27 @@
 #pragma once
 
-#include <core/types.h>
+#include <config/config.h>
 #include <core/event_loop.h>
+#include <artnet/artnet_handler.h>
 #include <artnet/artnet_server.h>
-#include <enttec/usb_client.h>
-#include <overlay_server/overlay_handler.h>
 #include <overlay_server/overlay_server.h>
+#include <overlay_server/overlay_handler.h>
+#include <enttec/usb_client.h>
+#include <core/app.h>
 
-#include <cstdint>
-#include <iostream>
-#include <chrono>
-#include <unordered_map>
 #include <string>
+#include <memory>
 
 namespace DmxEnttecNode {
 
-class Engine : private IArtnetHandler, private IOverlayHandler
+class AppReceiverNode : public App, private IArtnetHandler, private IOverlayHandler
 {
 public:
-	Engine(const Config&, EventLoop& loop);
-	~Engine();
+	AppReceiverNode(const Config&, EventLoop& loop);
+	~AppReceiverNode() override;
 
-	void Start();
+	void Start() override;
+	const Config& GetConfig() const override { return mConfig; };
 
 private:
 	// IArtnetHandler

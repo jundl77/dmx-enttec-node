@@ -9,11 +9,11 @@
 
 namespace DmxEnttecNode {
 
-class App
+class AudioReceiver
 {
 public:
-	App(const Config&, EventLoop& loop);
-	~App();
+	AudioReceiver(const Config&, EventLoop& loop);
+	~AudioReceiver();
 
 	void Start();
 

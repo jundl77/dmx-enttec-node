@@ -449,14 +449,14 @@ int handle_tod_request(node n, artnet_packet p) {
  * handle tod data packet
  *
  * we don't maintain a tod of whats out on the network,
- * the calling app can deal with this.
+ * the calling app_receiver_node can deal with this.
  */
 void handle_tod_data(node n, artnet_packet p) {
 
   if (check_callback(n, p, n->callbacks.toddata))
     return;
 
-  // pass data to app
+  // pass data to app_receiver_node
 
 //  if (n->callbacks.rdm_tod_c.fh != NULL)
 //    n->callbacks.rdm_tod_c.fh(n, i, n->callbacks.rdm_tod_c.data);
@@ -486,7 +486,7 @@ int handle_tod_control(node n, artnet_packet p) {
         if (n->callbacks.rdm_init_c.fh != NULL)
           n->callbacks.rdm_init_c.fh(n, i, n->callbacks.rdm_init_c.data);
 
-        // not really sure what to do here, the calling app should do a rdm
+        // not really sure what to do here, the calling app_receiver_node should do a rdm
         // init and call artnet_add_rdm_devices() which will send a tod data
         // but do we really trust the caller ?
         // Instead we'll send an empty tod data and then another one a bit later
