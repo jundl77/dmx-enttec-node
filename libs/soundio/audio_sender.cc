@@ -138,7 +138,7 @@ void AudioSender::SendAudioBytes(const char* data, size_t size)
 	std::memcpy(soundioData.mData, data, size);
 
 	mUdpClient.SendData(&soundioData, sizeof(SoundIoIdl::SoundIoData));
-	LOG(LL_DEBUG, LM_SENDER, "sent audio data, seqnum=%llu, size=%d", soundioData.mSeqNum, sizeof(SoundIoIdl::SoundIoData));
+	LOG(LL_DEBUG, LM_SENDER, "sent audio data, seqnum=%d, size=%d", soundioData.mSeqNum, sizeof(SoundIoIdl::SoundIoData));
 }
 
 }

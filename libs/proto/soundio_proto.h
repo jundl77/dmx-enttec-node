@@ -18,7 +18,7 @@ namespace DmxEnttecNode::SoundIoIdl {
 struct SoundIoData
 {
 	uint32_t mProtocolId {SOUNDIO_PROTOCOL_ID};
-	uint64_t mSeqNum;
+	uint32_t mSeqNum;
 	uint32_t mSize;
 	char mData[SOUNDIO_MAX_DATA_SIZE];
 };
