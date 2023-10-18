@@ -1,6 +1,6 @@
 #pragma once
 
-#include "overlay_proto.h"
+#include <proto/overlay_proto.h>
 #include <core/types.h>
 
 namespace DmxEnttecNode {

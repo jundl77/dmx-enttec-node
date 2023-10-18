@@ -24,7 +24,7 @@ extern "C"
 
 namespace DmxEnttecNode {
 
-static const LogModule LM_ARTNET {"ARTNET_SERVERR"};
+static const LogModule LM_ARTNET {"ARTNET_SERVER"};
 static IArtnetHandler* sArtnetHandlerPtr = nullptr; // so that we have access from the C library
 static int sPacketsReceivedCounter = 0;
 

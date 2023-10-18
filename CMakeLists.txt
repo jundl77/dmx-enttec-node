@@ -16,5 +16,6 @@ add_subdirectory(x_njson)
 add_subdirectory(x_libsoundio)
 
 add_subdirectory(libs)
-add_subdirectory(app_receiver_node)
+add_subdirectory(app_dmx_usb_node)
 add_subdirectory(app_audio_sender)
+add_subdirectory(app_audio_receiver)

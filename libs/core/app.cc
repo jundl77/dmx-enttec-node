@@ -19,7 +19,7 @@ const LogModule LM_MAIN {"MAIN"};
 
 std::optional<Config> LoadConfig(int argc, char *argv[], AppType appType)
 {
-	std::string filePath = "receiver_node.json";
+	std::string filePath = "dmx_usb_node.json";
 	if (argc == 2)
 	{
 		filePath = argv[1];

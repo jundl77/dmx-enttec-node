@@ -15,7 +15,7 @@ target_link_libraries(${name}
         )
 
 IF(WIN32)
-    target_link_libraries(${name} Ws2_32.lib iphlpapi.lib)
+    target_link_libraries(${name} ws2_32 iphlpapi)
 ENDIF ()
 
 target_compile_options(${name} PRIVATE ${cxx_compile_options})

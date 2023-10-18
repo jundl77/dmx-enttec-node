@@ -15,7 +15,8 @@ namespace DmxEnttecNode {
 enum class AppType
 {
 	AudioSender,
-	RecieverNode
+	AudioReceiver,
+	DmxUsbNode
 };
 
 class Config
@@ -31,6 +32,8 @@ public:
 	uint32_t mOverlayListenPort;
 	uint16_t mDmxUniverse;
 
+	std::string mAudioServerIpv4;
+	uint32_t mAudioServerPort;
 	std::string mAudioDeviceId;
 	std::string mAudioFormat;
 	int mAudioSampleRate;

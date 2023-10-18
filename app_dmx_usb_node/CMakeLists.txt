@@ -1,8 +1,8 @@
-set(TARGET_NAME app_receiver_node)
+set(TARGET_NAME app_dmx_usb_node)
 
 add_executable(${TARGET_NAME}
-        app_receiver_node.cc
-        app_receiver_node.h
+        app_dmx_usb_node.cc
+        app_dmx_usb_node.h
         main.cc)
 
 target_link_libraries(${TARGET_NAME}

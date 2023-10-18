@@ -1,4 +1,4 @@
-#include "app_receiver_node.h"
+#include "app_dmx_usb_node.h"
 #include <core/logger.h>
 
 #include <string>
@@ -6,9 +6,9 @@
 
 namespace DmxEnttecNode {
 
-static const LogModule LM_APP {"RECEIVER_APP"};
+static const LogModule LM_APP {"APP"};
 
-AppReceiverNode::AppReceiverNode(const Config& config, EventLoop& loop)
+AppDmxUsbNode::AppDmxUsbNode(const Config& config, EventLoop& loop)
 	: mConfig(config)
 	, mEventLoop(loop)
 	, mArtnetServer(mConfig, mEventLoop, *this)
@@ -17,11 +17,11 @@ AppReceiverNode::AppReceiverNode(const Config& config, EventLoop& loop)
 {
 }
 
-AppReceiverNode::~AppReceiverNode()
+AppDmxUsbNode::~AppDmxUsbNode()
 {
 }
 
-void AppReceiverNode::Start()
+void AppDmxUsbNode::Start()
 {
 	LOG(LL_INFO, LM_APP, "starting %s", mConfig.mAppName.c_str());
 	mArtnetServer.StartListening();
@@ -29,7 +29,7 @@ void AppReceiverNode::Start()
 	mUsbClient.Start();
 }
 
-void AppReceiverNode::OnDmxMessage(const DmxFrame& frame, int universe)
+void AppDmxUsbNode::OnDmxMessage(const DmxFrame& frame, int universe)
 {
 	DEBUG_LOG(LL_DEBUG, LM_APP, "received dmx frame on universe %d", universe);
 	if (universe != mConfig.mDmxUniverse)
@@ -41,7 +41,7 @@ void AppReceiverNode::OnDmxMessage(const DmxFrame& frame, int universe)
 	mUsbClient.UpdateFrame(frame);
 }
 
-void AppReceiverNode::OnOverlayMessage(const OverlayIdl::OverlayMessage& msg)
+void AppDmxUsbNode::OnOverlayMessage(const OverlayIdl::OverlayMessage& msg)
 {
 	DEBUG_LOG(LL_DEBUG, LM_APP, "received overlay data on universe %d", msg.mUniverse);
 	if (msg.mUniverse != mConfig.mDmxUniverse)

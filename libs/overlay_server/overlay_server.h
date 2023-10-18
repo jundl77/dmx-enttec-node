@@ -3,6 +3,7 @@
 #include "overlay_handler.h"
 #include <core/types.h>
 #include <core/event_loop.h>
+#include <network/udp_server.h>
 #include <artnet/artnet_server.h>
 #include <enttec/usb_client.h>
 
@@ -14,7 +15,7 @@
 
 namespace DmxEnttecNode {
 
-class OverlayServer
+class OverlayServer : private IUdpServerHandler
 {
 public:
 	OverlayServer(const Config&, EventLoop& loop, IOverlayHandler&);
@@ -23,25 +24,14 @@ public:
 	void Start();
 
 private:
-	void StartServer(int port);
-	void PollSocket();
-	void OnData(const char*, int len);
-	void ReportMetrics();
+	// IUdpServerHandler
+	void OnData(const void*, size_t len) override;
 
 private:
 	const Config& mConfig;
 	EventLoop& mEventLoop;
 	IOverlayHandler& mHandler;
-
-	WSADATA mWsaData;
-	int mSocket;
-	sockaddr_in mClientAddr;
-	char mRecvBuffer[4096];
-	bool mRunning = false;
-	int mReceiveCounter = 0;
-
-	ScopedHandler mListenSocketPollHandle;
-	ScopedHandler mMetricsHandle;
+	UdpServer mUdpServer;
 };
 
 }

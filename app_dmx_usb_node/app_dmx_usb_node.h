@@ -6,6 +6,7 @@
 #include <artnet/artnet_server.h>
 #include <overlay_server/overlay_server.h>
 #include <overlay_server/overlay_handler.h>
+#include <soundio/audio_receiver.h>
 #include <enttec/usb_client.h>
 #include <core/app.h>
 
@@ -14,11 +15,11 @@
 
 namespace DmxEnttecNode {
 
-class AppReceiverNode : public App, private IArtnetHandler, private IOverlayHandler
+class AppDmxUsbNode : public App, private IArtnetHandler, private IOverlayHandler
 {
 public:
-	AppReceiverNode(const Config&, EventLoop& loop);
-	~AppReceiverNode() override;
+	AppDmxUsbNode(const Config&, EventLoop& loop);
+	~AppDmxUsbNode() override;
 
 	void Start() override;
 	const Config& GetConfig() const override { return mConfig; };

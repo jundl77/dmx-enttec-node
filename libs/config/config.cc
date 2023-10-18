@@ -30,12 +30,35 @@ RunHot ParseRunHot(bool runHot)
 	return RunHot::No;
 }
 
-void LoadConfigAudioSender(Config& config, njson& json)
+void LoadCommonAudioConfig(Config& config, njson& json)
 {
-	// no-op
+	config.mAudioServerPort = json["audio_server_port"];
+	LOG(LL_INFO, LM_CONFIG, "audio_server_port: %d", config.mAudioServerPort);
+
+	config.mAudioDeviceId = json["audio_device_id"];
+	LOG(LL_INFO, LM_CONFIG, "audio_device_id: %s", config.mAudioDeviceId.c_str());
+
+	config.mAudioFormat = json["audio_format"];
+	LOG(LL_INFO, LM_CONFIG, "audio_format: %s", config.mAudioFormat.c_str());
+
+	config.mAudioSampleRate = json["audio_sample_rate"];
+	LOG(LL_INFO, LM_CONFIG, "audio_sample_rate: %d", config.mAudioSampleRate);
 }
 
-void LoadConfigReceiverNode(Config& config, njson& json)
+void LoadConfigAudioSender(Config& config, njson& json)
+{
+	LoadCommonAudioConfig(config, json);
+
+	config.mAudioServerIpv4 = json["audio_server_ip"];
+	LOG(LL_INFO, LM_CONFIG, "audio_server_ip: %s", config.mAudioServerIpv4.c_str());
+}
+
+void LoadConfigAudioReceiver(Config& config, njson& json)
+{
+	LoadCommonAudioConfig(config, json);
+}
+
+void LoadConfigDmxUsbNode(Config& config, njson& json)
 {
 	config.mOverlayListenPort = json["overlay_listen_port"];
 	LOG(LL_INFO, LM_CONFIG, "overlay_listen_port: %d", config.mOverlayListenPort);
@@ -73,21 +96,15 @@ std::optional<Config> Config::FromFile(const std::string& filePath, AppType appT
 	config.mCoreAffinity = json["core_affinity"];
 	LOG(LL_INFO, LM_CONFIG, "core_affinity: %d", config.mCoreAffinity);
 
-	config.mAudioDeviceId = json["audio_device_id"];
-	LOG(LL_INFO, LM_CONFIG, "audio_device_id: %s", config.mAudioDeviceId.c_str());
-
-	config.mAudioFormat = json["audio_format"];
-	LOG(LL_INFO, LM_CONFIG, "audio_format: %s", config.mAudioFormat.c_str());
-
-	config.mAudioSampleRate = json["audio_sample_rate"];
-	LOG(LL_INFO, LM_CONFIG, "audio_sample_rate: %d", config.mAudioSampleRate);
-
 	switch (appType) {
 		case AppType::AudioSender:
 			LoadConfigAudioSender(config, json);
 			break;
-		case AppType::RecieverNode:
-			LoadConfigReceiverNode(config, json);
+		case AppType::AudioReceiver:
+			LoadConfigAudioReceiver(config, json);
+			break;
+		case AppType::DmxUsbNode:
+			LoadConfigDmxUsbNode(config, json);
 			break;
 	}
 

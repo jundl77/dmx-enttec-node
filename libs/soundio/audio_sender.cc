@@ -1,10 +1,10 @@
 #include "audio_sender.h"
 #include "audio_utils.h"
 #include <config/config.h>
+#include <proto/soundio_proto.h>
 #include <core/throw_if.h>
 #include <core/logger.h>
 #include <string>
-#include <memory>
 
 namespace DmxEnttecNode {
 
@@ -27,7 +27,7 @@ void ReadCallback(SoundIoInStream* instream, int frameCountMin, int frameCountMa
 	static std::vector<char> framesBuffer;
 	if (framesBuffer.capacity() < maxReadSize)
 	{
-		framesBuffer.reserve(maxReadSize);
+		framesBuffer.reserve(maxReadSize * 16);
 	}
 	std::memset(framesBuffer.data(), 0, maxReadSize);
 	int framesBufferIndex = 0;
@@ -78,6 +78,7 @@ void ReadCallback(SoundIoInStream* instream, int frameCountMin, int frameCountMa
 AudioSender::AudioSender(const Config& config, EventLoop& loop)
 	: mConfig(config)
 	, mEventLoop(loop)
+	, mUdpClient(LM_SENDER, loop)
 {
 	THROW_IF(sAudioSender != nullptr, "only one audio-sender instance can be active");
 	sAudioSender = this;
@@ -93,6 +94,12 @@ AudioSender::~AudioSender()
 }
 
 void AudioSender::Start()
+{
+	mUdpClient.Connect(mConfig.mAudioServerIpv4, mConfig.mAudioServerPort);
+	StartAudioRecorder();
+}
+
+void AudioSender::StartAudioRecorder()
 {
 	const bool isRawDevice = false; // a raw device directly interacts with the hardware
 	mInputDevice = GetAudioInputDevice(mSoundIo, mConfig.mAudioDeviceId, isRawDevice);
@@ -114,12 +121,29 @@ void AudioSender::Start()
 	THROW_IF((err = soundio_instream_start(mInStream)),
 			 "unable to start input device: " + std::string(soundio_strerror(err)));
 
-	mEventLoop.AddPoller([this]() { soundio_wait_events(mSoundIo); });
+	mEventLoop.AddTimer(1ms, [this]() { soundio_wait_events(mSoundIo); });
 }
 
 void AudioSender::SendAudioBytes(const char* data, size_t size)
 {
-	LOG(LL_INFO, LM_SENDER, "sent audio bytes of size: %d", size);
+	if (size > SOUNDIO_MAX_DATA_SIZE)
+	{
+		LOG(LL_INFO, LM_SENDER, "dropping data of size %d, because it is too big (max=%d)", size, SOUNDIO_MAX_DATA_SIZE);
+		return;
+	}
+
+	static SoundIoIdl::SoundIoData soundioData {};
+	soundioData.mSeqNum = ++mSeqNum;
+	soundioData.mSize = size;
+	std::memcpy(soundioData.mData, data, size);
+
+	mUdpClient.SendData(&soundioData, sizeof(SoundIoIdl::SoundIoData));
+	LOG(LL_DEBUG, LM_SENDER, "sent audio data, seqnum=%llu, size=%d", soundioData.mSeqNum, sizeof(SoundIoIdl::SoundIoData));
+
+	if (soundioData.mSeqNum == 100)
+	{
+		DEBUG_LOG(LL_DEBUG, LM_SENDER, "GOT HERE");
+	}
 }
 
 }

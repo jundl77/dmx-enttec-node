@@ -1,7 +1,7 @@
 #pragma once
 
 #include "enttec/libenttec/ftd2xx/ftd2xx.h"
-#include <overlay_server/overlay_proto.h>
+#include <proto/overlay_proto.h>
 #include <core/types.h>
 #include <core/event_loop.h>
 #include <core/scoped_handler.h>

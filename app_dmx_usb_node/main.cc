@@ -1,11 +1,11 @@
-#include "app_receiver_node.h"
+#include "app_dmx_usb_node.h"
 #include <core/app.h>
 
 using namespace DmxEnttecNode;
 
 int main(int argc, char *argv[])
 {
-	std::optional<AppContext> context = SetupApp(argc, argv, "receiver_node");
+	std::optional<AppContext> context = SetupApp(argc, argv, "dmx_usb_node", AppType::DmxUsbNode);
 	if (!context)
 	{
 		return 1;
