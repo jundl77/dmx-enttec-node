@@ -184,11 +184,6 @@ void AudioReceiver::OnData(const void* data, size_t len)
 	const SoundIoIdl::SoundIoData* soundData = static_cast<const SoundIoIdl::SoundIoData*>(data);
 	THROW_IF(soundData->mProtocolId != SOUNDIO_PROTOCOL_ID, "protocol id is wrong");
 
-	if (soundData->mSeqNum == 100)
-	{
-		DEBUG_LOG(LL_DEBUG, LM_SENDER, "GOT HERE");
-	}
-
 	DEBUG_LOG(LL_DEBUG, LM_SENDER, "received sound data, seqnum=%llu, size=%d", soundData->mSeqNum, soundData->mSize);
 	PlayAudioBytes(soundData->mData, soundData->mSize);
 }

@@ -139,11 +139,6 @@ void AudioSender::SendAudioBytes(const char* data, size_t size)
 
 	mUdpClient.SendData(&soundioData, sizeof(SoundIoIdl::SoundIoData));
 	LOG(LL_DEBUG, LM_SENDER, "sent audio data, seqnum=%llu, size=%d", soundioData.mSeqNum, sizeof(SoundIoIdl::SoundIoData));
-
-	if (soundioData.mSeqNum == 100)
-	{
-		DEBUG_LOG(LL_DEBUG, LM_SENDER, "GOT HERE");
-	}
 }
 
 }
