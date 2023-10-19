@@ -102,6 +102,7 @@ AudioReceiver::AudioReceiver(const Config& config, EventLoop& loop)
 	sAudioReceiver = this;
 
 	mSoundIo = CreateSoundIo(DEFAULT_SOUNDIO_BACKEND);
+	LogSupportedDevices(LM_SENDER, mSoundIo, false /*verbose*/, false /*logInputDevices*/, true /*logOutputDevices*/);
 }
 
 AudioReceiver::~AudioReceiver()

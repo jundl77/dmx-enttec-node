@@ -84,6 +84,7 @@ AudioSender::AudioSender(const Config& config, EventLoop& loop)
 	sAudioSender = this;
 
 	mSoundIo = CreateSoundIo(DEFAULT_SOUNDIO_BACKEND);
+	LogSupportedDevices(LM_SENDER, mSoundIo, false /*verbose*/, true /*logInputDevices*/, false /*logOutputDevices*/);
 }
 
 AudioSender::~AudioSender()

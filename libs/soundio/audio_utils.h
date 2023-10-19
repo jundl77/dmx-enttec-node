@@ -13,6 +13,7 @@ SoundIo* CreateSoundIo(SoundIoBackend);
 SoundIoDevice* GetAudioInputDevice(SoundIo*, const std::string& inputDeviceId, bool isRawDevice);
 SoundIoDevice* GetAudioOutputDevice(SoundIo*, const std::string& outputDeviceId, bool isRawDevice);
 
+void LogSupportedDevices(const LogModule&, SoundIo*, bool verbose, bool logInputDevices, bool logOutputDevices);
 void LogSupportedFormats(const LogModule&, SoundIoDevice*);
 void LogSupportedSampleRates(const LogModule&, SoundIoDevice*);
 

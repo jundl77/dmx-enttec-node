@@ -36,6 +36,83 @@ int PrioritizedSampleRates[] = {
 	0,
 };
 
+void PrintChannelLayout(const LogModule& logModule, const SoundIoChannelLayout* layout)
+{
+	if (layout->name)
+	{
+		LOG(LL_INFO, logModule, "%s", layout->name);
+	}
+	else
+	{
+		LOG(LL_INFO, logModule, "%s", soundio_get_channel_name(layout->channels[0]));
+		for (int i = 1; i < layout->channel_count; i += 1)
+		{
+			LOG(LL_INFO, logModule, "%s",  soundio_get_channel_name(layout->channels[i]));
+		}
+	}
+}
+
+void PrintDevice(const LogModule& logModule, SoundIoDevice *device, bool is_default, bool verbose)
+{
+	const char *default_str = is_default ? "(default)" : "";
+	const char *raw_str = device->is_raw ? "(raw)" : "";
+
+	LOG(LL_INFO, logModule, " %s%s, id='%s' %s", device->name, default_str, device->id, raw_str);
+	if (!verbose)
+	{
+		return;
+	}
+
+	if (device->probe_error)
+	{
+		LOG(LL_INFO, logModule, "  probe error: %s", soundio_strerror(device->probe_error));
+	}
+	else
+	{
+		LOG(LL_INFO, logModule, "  channel layouts:");
+		for (int i = 0; i < device->layout_count; i += 1)
+		{
+			LOG(LL_INFO, logModule, "    ");
+			PrintChannelLayout(logModule, &device->layouts[i]);
+			LOG(LL_INFO, logModule, "");
+		}
+		if (device->current_layout.channel_count > 0)
+		{
+			LOG(LL_INFO, logModule, "  current layout: ");
+			PrintChannelLayout(logModule, &device->current_layout);
+			LOG(LL_INFO, logModule, "");
+		}
+
+		LOG(LL_INFO, logModule, "  sample rates:");
+		for (int i = 0; i < device->sample_rate_count; i += 1)
+		{
+			struct SoundIoSampleRateRange *range = &device->sample_rates[i];
+			LOG(LL_INFO, logModule, "    %d - %d", range->min, range->max);
+
+		}
+		if (device->sample_rate_current)
+			LOG(LL_INFO, logModule, "  current sample rate: %d", device->sample_rate_current);
+
+		LOG(LL_INFO, logModule, "  formats: ");
+		for (int i = 0; i < device->format_count; i += 1)
+		{
+			const char *comma = (i == device->format_count - 1) ? "" : ", ";
+			LOG(LL_INFO, logModule, "%s%s", soundio_format_string(device->formats[i]), comma);
+		}
+
+		LOG(LL_INFO, logModule, "");
+		if (device->current_format != SoundIoFormatInvalid)
+			LOG(LL_INFO, logModule, "  current format: %s", soundio_format_string(device->current_format));
+
+		LOG(LL_INFO, logModule, "  min software latency: %0.8f sec", device->software_latency_min);
+		LOG(LL_INFO, logModule, "  max software latency: %0.8f sec", device->software_latency_max);
+		if (device->software_latency_current != 0.0)
+			LOG(LL_INFO, logModule, "  current software latency: %0.8f sec", device->software_latency_current);
+
+	}
+	LOG(LL_INFO, logModule, "");
+}
+
 }
 
 SoundIo* CreateSoundIo(SoundIoBackend backend)
@@ -104,6 +181,41 @@ SoundIoDevice* GetAudioOutputDevice(SoundIo* soundio, const std::string& outputD
 	SoundIoDevice* outDevice = soundio_get_output_device(soundio, outDeviceIndex);
 	THROW_IF(!outDevice, "could not get output device: out of memory");
 	return outDevice;
+}
+
+void LogSupportedDevices(const LogModule& logModule, SoundIo* soundio, bool verbose, bool logInputDevices, bool logOutputDevices)
+{
+	int outputCount = 0;
+	int inputCount = 0;
+
+	int default_output = soundio_default_output_device_index(soundio);
+	int default_input = soundio_default_input_device_index(soundio);
+
+	if (logInputDevices)
+	{
+		inputCount = soundio_input_device_count(soundio);
+		LOG(LL_INFO, logModule, "--------Input Devices--------");
+		for (int i = 0; i < inputCount; i += 1)
+		{
+			SoundIoDevice *device = soundio_get_input_device(soundio, i);
+			PrintDevice(logModule, device, default_input == i, verbose);
+			soundio_device_unref(device);
+		}
+	}
+
+	if (logOutputDevices)
+	{
+		outputCount = soundio_output_device_count(soundio);
+		LOG(LL_INFO, logModule, "--------Output Devices--------");
+		for (int i = 0; i < outputCount; i += 1)
+		{
+			SoundIoDevice *device = soundio_get_output_device(soundio, i);
+			PrintDevice(logModule, device, default_output == i, verbose);
+			soundio_device_unref(device);
+		}
+	}
+
+	LOG(LL_INFO, logModule, "%d devices found", inputCount + outputCount);
 }
 
 void LogSupportedFormats(const LogModule& logModule, SoundIoDevice* device)
