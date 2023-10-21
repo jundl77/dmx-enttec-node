@@ -73,6 +73,12 @@ void ReadCallback(SoundIoInStream* instream, int frameCountMin, int frameCountMa
 	sAudioSender->SendAudioBytes(framesBuffer.data(), maxReadSize);
 }
 
+void ErrorCallback(SoundIoInStream*, int err)
+{
+	std::string errorReason = std::string(soundio_strerror(err));
+	sAudioSender->ResetAudioStream(errorReason);
+}
+
 }
 
 AudioSender::AudioSender(const Config& config, EventLoop& loop)
@@ -115,14 +121,13 @@ void AudioSender::StartAudioRecorder()
 	mInStream->sample_rate = mConfig.mAudioSampleRate;
 	mInStream->software_latency = sMicrophoneLatencySec;
 	mInStream->read_callback = ReadCallback;
+	mInStream->error_callback = ErrorCallback;
 
 	int err;
 	THROW_IF((err = soundio_instream_open(mInStream)),
 			 "unable to open input stream: " + std::string(soundio_strerror(err)));
 	THROW_IF((err = soundio_instream_start(mInStream)),
 			 "unable to start input device: " + std::string(soundio_strerror(err)));
-
-	mEventLoop.AddTimer(10us, [this]() { soundio_wait_events(mSoundIo); });
 }
 
 void AudioSender::SendAudioBytes(const char* data, size_t size)
@@ -140,6 +145,20 @@ void AudioSender::SendAudioBytes(const char* data, size_t size)
 
 	mUdpClient.SendData(&soundioData, sizeof(SoundIoIdl::SoundIoData));
 	LOG(LL_DEBUG, LM_SENDER, "sent audio data, seqnum=%d, size=%d", soundioData.mSeqNum, sizeof(SoundIoIdl::SoundIoData));
+}
+
+void AudioSender::ResetAudioStream(const std::string& error)
+{
+	LOG(LL_INFO, LM_SENDER, "resetting audio stream in 2sec, reason=%s", error.c_str());
+	mEventLoop.Post(2s, [this]()
+	{
+		LOG(LL_INFO, LM_SENDER, "resetting audio stream now");
+		soundio_instream_destroy(mInStream);
+		soundio_device_unref(mInputDevice);
+		soundio_destroy(mSoundIo);
+		mSoundIo = CreateSoundIo(DEFAULT_SOUNDIO_BACKEND);
+		StartAudioRecorder();
+	});
 }
 
 }

@@ -18,6 +18,7 @@ public:
 
 	void Start();
 	SoundIoRingBuffer* GetRingBuffer() { return mRingBuffer; };
+	void ResetAudioStream(const std::string& error);
 
 private:
 	void StartAudioPlayer();
@@ -34,6 +35,7 @@ private:
 	SoundIoDevice* mOutputDevice;
 	SoundIoOutStream* mOutStream;
 	SoundIoRingBuffer* mRingBuffer;
+	bool mAudioPlayerIsRunning {false};
 };
 
 }

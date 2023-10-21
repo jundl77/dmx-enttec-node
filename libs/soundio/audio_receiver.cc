@@ -91,6 +91,12 @@ void UnderflowCallback(SoundIoOutStream*)
 	// we don't care about this
 }
 
+void ErrorCallback(SoundIoOutStream*, int err)
+{
+	std::string errorReason = std::string(soundio_strerror(err));
+	sAudioReceiver->ResetAudioStream(errorReason);
+}
+
 }
 
 AudioReceiver::AudioReceiver(const Config& config, EventLoop& loop)
@@ -135,6 +141,7 @@ void AudioReceiver::StartAudioPlayer()
 	mOutStream->software_latency = sMicrophoneLatencySec;
 	mOutStream->write_callback = WriteCallback;
 	mOutStream->underflow_callback = UnderflowCallback;
+	mOutStream->error_callback = ErrorCallback;
 
 	int err;
 	THROW_IF((err = soundio_outstream_open(mOutStream)),
@@ -151,10 +158,16 @@ void AudioReceiver::StartAudioPlayer()
 
 	THROW_IF((err = soundio_outstream_start(mOutStream)),
 			 "unable to start output device: " + std::string(soundio_strerror(err)));
+	mAudioPlayerIsRunning = true;
 }
 
 void AudioReceiver::PlayAudioBytes(const char* data, size_t size)
 {
+	if (!mAudioPlayerIsRunning)
+	{
+		return;
+	}
+
 	LOG(LL_DEBUG, LM_SENDER, "ring-buffer state: capacity=%d, fill_count=%d, recv_data_size=%d",
 		soundio_ring_buffer_capacity(mRingBuffer), soundio_ring_buffer_fill_count(mRingBuffer), size);
 	if (size > soundio_ring_buffer_capacity(mRingBuffer))
@@ -187,6 +200,22 @@ void AudioReceiver::OnData(const void* data, size_t len)
 
 	DEBUG_LOG(LL_DEBUG, LM_SENDER, "received sound data, seqnum=%d, size=%d", soundData->mSeqNum, soundData->mSize);
 	PlayAudioBytes(soundData->mData, soundData->mSize);
+}
+
+void AudioReceiver::ResetAudioStream(const std::string& error)
+{
+	LOG(LL_INFO, LM_SENDER, "resetting audio stream in 2sec, reason=%s", error.c_str());
+	mAudioPlayerIsRunning = false;
+	mEventLoop.Post(2s, [this]()
+	{
+		LOG(LL_INFO, LM_SENDER, "resetting audio stream now");
+		soundio_outstream_destroy(mOutStream);
+		soundio_device_unref(mOutputDevice);
+		soundio_destroy(mSoundIo);
+		soundio_ring_buffer_destroy(mRingBuffer);
+		mSoundIo = CreateSoundIo(DEFAULT_SOUNDIO_BACKEND);
+		StartAudioPlayer();
+	});
 }
 
 }

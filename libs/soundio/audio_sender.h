@@ -18,6 +18,7 @@ public:
 
 	void Start();
 	void SendAudioBytes(const char* data, size_t size);
+	void ResetAudioStream(const std::string& error);
 
 private:
 	void StartAudioRecorder();
