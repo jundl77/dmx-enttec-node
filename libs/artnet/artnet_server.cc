@@ -8,6 +8,7 @@
 
 #ifdef WIN32
 #include "winsock.h"
+#include "ws2tcpip.h"
 #else
 #include <unistd.h>
 #include <sys/socket.h>
@@ -30,13 +31,15 @@ static int sPacketsReceivedCounter = 0;
 
 namespace {
 
-void ConfigureArtnetPollReplyTemplate(artnet_node& artnetNode)
+void ConfigureArtnetPollReplyTemplate(artnet_node& artnetNode, const std::string& localIp)
 {
 	node n = reinterpret_cast<node>(artnetNode);
 
-	// this tells senders to send to the bcast addr, which ensures that we dont need to bind to the exact IP which
-	// they send to
-	memcpy(&n->ar_temp.ip, &n->state.bcast_addr, sizeof(n->state.bcast_addr));
+	// localIp is the IP which the DMX sender will use to send data, so it should be the local network IP of the
+	// machine this node runs on
+	SI localIpObj;
+	localIpObj.s_addr = inet_addr(localIp.c_str());
+	memcpy(&n->ar_temp.ip, &localIpObj, sizeof(localIpObj));
 }
 
 }
@@ -62,10 +65,8 @@ ArtnetServer::~ArtnetServer()
 void ArtnetServer::StartListening()
 {
 	std::optional<std::string> localIpAddress = FindIpAddress();
-	if (!localIpAddress)
-	{
-		localIpAddress = "127.0.0.1";
-	}
+	THROW_IF(!localIpAddress, "could not find IP address");
+	THROW_IF(localIpAddress == "127.0.0.1", "127.0.0.1 is not allowed as local IP address");
 	const char* ip_addr = localIpAddress->c_str();
 
 	int verbose = 0; // 0 is not verbose, 1 is verbose
@@ -106,7 +107,7 @@ void ArtnetServer::StartListening()
 	fcntl(mNodeSd, F_SETFL, O_NONBLOCK);
 #endif
 
-	ConfigureArtnetPollReplyTemplate(mNode);
+	ConfigureArtnetPollReplyTemplate(mNode, *localIpAddress);
 
 	LOG(LL_INFO, LM_ARTNET, "started listening on %s:%d", localIpAddress->c_str(), ARTNET_PORT);
 	mListenSocketPollHandle = mEventLoop.AddPoller([this]() { PollSocket(); });
@@ -157,56 +158,41 @@ int ArtnetServer::DmxHandler(artnet_node n, void* packet, void* data)
 	return 0;
 }
 
-// find the ip address by binding to google's dns engine, and looking at our ip that way
-std::optional<std::string> ArtnetServer::FindIpAddress()
+std::string ArtnetServer::FindIpAddress()
 {
-#ifndef WIN32
-	const char* google_dns_server = "8.8.8.8";
-	int dns_port = 53;
-
-	struct sockaddr_in serv;
-	int sock = socket(AF_INET, SOCK_DGRAM, 0);
-
-	// socket could not be created
-	if (sock < 0)
-	{
-		LOG(LL_ERROR, LM_ARTNET, "unable to create socket to google dns engine to find local ip of socket");
-		return std::nullopt;
-	}
-
-	memset(&serv, 0, sizeof(serv));
-	serv.sin_family = AF_INET;
-	serv.sin_addr.s_addr = inet_addr(google_dns_server);
-	serv.sin_port = htons(dns_port);
-
-	int err = connect(sock, (const struct sockaddr*)&serv, sizeof(serv));
-	if (err < 0)
-	{
-		LOG(LL_ERROR, LM_ARTNET, "unable to connect socket to google dns engine to find local ip of socket");
-		return std::nullopt;
-	}
-
-	struct sockaddr_in name;
-	socklen_t namelen = sizeof(name);
-	err = getsockname(sock, (struct sockaddr*)&name, &namelen);
-
-	char buffer[80];
-	const char* p = inet_ntop(AF_INET, &name.sin_addr, buffer, 80);
-	close(sock);
-
-	if(p != NULL)
-	{
-		LOG(LL_INFO, LM_ARTNET, "found local ip: %s", buffer);
-		return buffer;
-	}
-	else
-	{
-		LOG(LL_ERROR, LM_ARTNET, "unable to find local ip using google dns lookup");
-		return std::nullopt;
-	}
-#else
-	return "127.0.0.1";
+#ifdef WIN32
+	WSADATA wsaData;
+	int error = WSAStartup(0x0202, &wsaData);
+	THROW_IF(error, "unable to open WSA");
 #endif
+
+	int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	THROW_IF(sock == -1, "could not open socket");
+
+	sockaddr_in loopback;
+	loopback.sin_family = AF_INET;
+	loopback.sin_addr.s_addr = 1337; // can be any IP address
+	loopback.sin_port = htons(9); // using debug port
+
+	int res = connect(sock, reinterpret_cast<sockaddr*>(&loopback), sizeof(loopback));
+	THROW_IF(res == -1, "error with connect");
+
+	int addrlen = sizeof(loopback);
+	res = getsockname(sock, reinterpret_cast<sockaddr*>(&loopback), &addrlen);
+	THROW_IF(res == -1, "error with getsockname");
+
+	char buf[INET_ADDRSTRLEN];
+	PCSTR resInetNtop = inet_ntop(AF_INET, &loopback.sin_addr, buf, INET_ADDRSTRLEN);
+	THROW_IF(resInetNtop == 0x0, "error with inet_ntop");
+
+#ifdef WIN32
+	closesocket(sock);
+	WSACleanup();
+#else
+	close(sock);
+#endif
+
+	return std::string(buf, INET_ADDRSTRLEN);
 }
 
 void ArtnetServer::ReportMetrics()

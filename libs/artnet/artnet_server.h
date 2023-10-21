@@ -21,7 +21,7 @@ public:
 
 private:
 	void PollSocket();
-	std::optional<std::string> FindIpAddress();
+	std::string FindIpAddress();
 
 	void SendArtPollReply();
 	void ReportMetrics();
