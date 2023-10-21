@@ -11,7 +11,7 @@ namespace DmxEnttecNode::SoundIoIdl {
 #define MAX_UDP_PACKET_SIZE 65535
 
 #define SOUNDIO_PROTOCOL_ID 0x7798
-#define SOUNDIO_MAX_DATA_SIZE 1024 * 60
+#define SOUNDIO_MAX_DATA_SIZE 1024 * 20
 
 #pragma pack(push, 1)
 

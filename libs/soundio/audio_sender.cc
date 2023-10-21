@@ -84,7 +84,6 @@ AudioSender::AudioSender(const Config& config, EventLoop& loop)
 	sAudioSender = this;
 
 	mSoundIo = CreateSoundIo(DEFAULT_SOUNDIO_BACKEND);
-	LogSupportedDevices(LM_SENDER, mSoundIo, false /*verbose*/, true /*logInputDevices*/, false /*logOutputDevices*/);
 }
 
 AudioSender::~AudioSender()
@@ -96,6 +95,7 @@ AudioSender::~AudioSender()
 
 void AudioSender::Start()
 {
+	LogSupportedDevices(LM_SENDER, mSoundIo, false /*verbose*/, true /*logInputDevices*/, false /*logOutputDevices*/);
 	mUdpClient.Connect(mConfig.mAudioServerIpv4, mConfig.mAudioServerPort);
 	StartAudioRecorder();
 }
@@ -122,7 +122,7 @@ void AudioSender::StartAudioRecorder()
 	THROW_IF((err = soundio_instream_start(mInStream)),
 			 "unable to start input device: " + std::string(soundio_strerror(err)));
 
-	mEventLoop.AddTimer(1ms, [this]() { soundio_wait_events(mSoundIo); });
+	mEventLoop.AddTimer(10us, [this]() { soundio_wait_events(mSoundIo); });
 }
 
 void AudioSender::SendAudioBytes(const char* data, size_t size)
