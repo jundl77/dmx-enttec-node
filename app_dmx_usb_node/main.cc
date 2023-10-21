@@ -10,6 +10,6 @@ int main(int argc, char *argv[])
 	{
 		return 1;
 	}
-	AppReceiverNode app = AppReceiverNode(context->mConfig, context->mEventLoop);
+	AppDmxUsbNode app = AppDmxUsbNode(context->mConfig, context->mEventLoop);
 	RunApp(context->mEventLoop, app);
 }
