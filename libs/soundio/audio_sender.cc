@@ -66,7 +66,7 @@ void ReadCallback(SoundIoInStream* instream, int frameCountMin, int frameCountMa
 
 		framesLeft -= frameCount;
 		if (framesLeft <= 0)
-			break;
+			break; 
 	}
 
 	THROW_IF(framesBufferIndex > maxReadSize, "copied more bytes than we predicted, something is wrong");
